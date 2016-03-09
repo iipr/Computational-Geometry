@@ -15,7 +15,7 @@ class Fisher:
         self.c = None
 
     def compute_umbral(self, X0, X1, vmu0, vmu1):
-        '''Computes the value c for
+        '''Computes value c for
         Fisher's lineal discriminant'''
 
         # Computes the standard deviation of the projected points
