@@ -37,7 +37,7 @@ class Fisher:
         return c
  
     def compute_Sw(self, X0, X1):
-        #Computes shape of points
+        #Computes shape of points.
         N0 = X0.shape[0]
         N1 = X1.shape[0]
 
