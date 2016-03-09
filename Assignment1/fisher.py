@@ -5,7 +5,7 @@ import numpy as np
  
 class Fisher:
     '''Implements the Fisher discrimiation
-    method to classify points'''
+    method to classify points according to Bishop'''
  
     def __init__(self):
         '''The basic constructor'''
