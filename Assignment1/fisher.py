@@ -62,6 +62,26 @@ class Fisher:
         c
             Threshold that gives the class distinction.
 
+        Examples
+        --------
+        Use two sets of training points (X0 and X1):
+            >>> Classifier = Fisher()
+            >>> X0 = [[2, 3], [3, 5]]
+            >>> X1 = [[4, 8], [5, 11]]
+            >>> vmu0 = np.mean(X0, axis=0)
+            >>> vmu1 = np.mean(X1, axis=0)
+            >>> c = Classifier.compute_threshold(X0, X1, vmu0, vmu1)
+        The threshold c will be:
+            >>> 0.529218461347
+        With different sets of training points:
+            >>> X2 = [[1, 1], [2, 2]]
+            >>> X3 = [[2, 1], [4, 2]]
+            >>> vmu2 = np.mean(X2, axis=0)
+            >>> vmu3 = np.mean(X3, axis=0)
+            >>> c = Classifier.compute_threshold(X2, X3, vmu0, vmu1)
+        The threshold c will be:
+            >>> -0.0714285714286
+
         """
         # Compute the standard deviation of the projected points:
         sigma0 = np.std(np.dot(self.w, X0.transpose()))
@@ -108,6 +128,24 @@ class Fisher:
         Sw
             Total within-class covariance matrix.
 
+        Examples
+        --------
+        Use two sets of training points (X0 and X1):
+            >>> Classifier = Fisher()
+            >>> X0 = [[2, 3], [3, 5]]
+            >>> X1 = [[4, 8], [5, 11]]
+            >>> Sw = Classifier.compute_Sw(X0, X1)
+        The matrix Sw will be:
+            >>> [[1.   2.5]
+                 [2.5  6.5]]
+        With different sets of training points:
+            >>> X2 = [[1, 1], [2, 2]]
+            >>> X3 = [[2, 1], [4, 2]]
+            >>> Sw = Classifier.compute_Sw(X2, X3)
+        The matrix Sw will be:
+            >>> [[2.5  1.5]
+                 [1.5  1. ]]
+
         """
         # Compute the number of points on each class:
         N0 = X0.shape[0]
@@ -132,23 +170,21 @@ class Fisher:
 
         Examples
         --------
-        First use some training points (X0 and X1) and then classify X:
-        >>> Classifier = Fisher()
-        >>> X0 = [[2,3],[3,5]]
-        >>> X1 = [[4,8],[5,11]]
-        >>> Classifier.train_fisher(X0, X1)
+        Use two sets of training points (X0 and X1):
+            >>> Classifier = Fisher()
+            >>> X0 = [[2, 3], [3, 5]]
+            >>> X1 = [[4, 8], [5, 11]]
+            >>> Classifier.train_fisher(X0, X1)
         The values for w and c are, respectively:
-        >>> 0.529218461347
-        >>> [-0.83205029  0.5547002]
-
-
+            >>> [-0.83205029  0.5547002]
+            >>> 0.529218461347
         With different sets of training points:
-        >>> X2 = [[1,1],[2,2]]
-        >>> X3 = [[2,1],[4,2]]
-        >>> Classifier.train_fisher(X2, X3)
+            >>> X2 = [[1, 1], [2, 2]]
+            >>> X3 = [[2, 1], [4, 2]]
+            >>> Classifier.train_fisher(X2, X3)
         The values for w and c are, respectively:
-        >>> [0.5547002  -0.83205029]
-        >>> -0.0714285714286
+            >>> [0.5547002  -0.83205029]
+            >>> -0.0714285714286
 
         """
         # Turn lists into arrays for latter purposes,
@@ -189,24 +225,23 @@ class Fisher:
 
         Examples
         --------
-        First use some training points (X0 and X1) and then classify X:
-        >>> Classifier = Fisher()
-        >>> X0 = [[2,3],[3,5]]
-        >>> X1 = [[4,8],[5,11]]
-        >>> Classifier.train_fisher(X0, X1)
-        >>> X = [[1,2],[3,7],[5,11],[2,13]]
-        >>> classes = Classifier.classify_fisher(X)
+        First use some sets of training points (X0 and X1) and then classify X:
+            >>> Classifier = Fisher()
+            >>> X0 = [[2, 3], [3, 5]]
+            >>> X1 = [[4, 8], [5, 11]]
+            >>> Classifier.train_fisher(X0, X1)
+            >>> X = [[1, 2], [3, 7], [5, 11], [2, 13]]
+            >>> classes = Classifier.classify_fisher(X)
         The computed values (classes) will be:
-        >>> [0, 1, 1, 1]
-
+            >>> [0, 1, 1, 1]
         With different sets of training points:
-        >>> X2 = [[1,1],[2,2]]
-        >>> X3 = [[2,1],[4,2]]
-        >>> Classifier.train_fisher(X2, X3)
-        >>> X = [[1,2],[3,2],[20,30]]
-        >>> classes = Classifier.classify_fisher(X)
+            >>> X2 = [[1, 1], [2, 2]]
+            >>> X3 = [[2, 1], [4, 2]]
+            >>> Classifier.train_fisher(X2, X3)
+            >>> X = [[1, 2], [3, 2], [20, 30]]
+            >>> classes = Classifier.classify_fisher(X)
         The computed values (classes) will be:
-        >>> [0, 1, 0]
+            >>> [0, 1, 0]
 
         """
         # Turn list into a array for latter purposes,
