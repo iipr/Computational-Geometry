@@ -23,6 +23,17 @@ class Fisher:
     c : float
         Threshold for Fisher's method.
 
+    Methods
+    -------
+    compute_threshold
+        Return threshold c.
+    compute_Sw
+        Return matrix Sw.
+    train_fisher
+        Compute and update vector w and value c.
+    classify_fisher
+        Classify the points given by X according to the training points.
+
     """
 
 
@@ -119,6 +130,26 @@ class Fisher:
         X1
             Set of training points for class 1.
 
+        Examples
+        --------
+        First use some training points (X0 and X1) and then classify X:
+        >>> Classifier = Fisher()
+        >>> X0 = [[2,3],[3,5]]
+        >>> X1 = [[4,8],[5,11]]
+        >>> Classifier.train_fisher(X0, X1)
+        The values for w and c are, respectively:
+        >>> 0.529218461347
+        >>> [-0.83205029  0.5547002]
+
+
+        With different sets of training points:
+        >>> X2 = [[1,1],[2,2]]
+        >>> X3 = [[2,1],[4,2]]
+        >>> Classifier.train_fisher(X2, X3)
+        The values for w and c are, respectively:
+        >>> [0.5547002  -0.83205029]
+        >>> -0.0714285714286
+
         """
         # Turn lists into arrays for latter purposes,
         # nothing happens if they were arrays already:
@@ -155,6 +186,27 @@ class Fisher:
         -------
         clasification
             List of 0-1 values representing the class that each point belongs to.
+
+        Examples
+        --------
+        First use some training points (X0 and X1) and then classify X:
+        >>> Classifier = Fisher()
+        >>> X0 = [[2,3],[3,5]]
+        >>> X1 = [[4,8],[5,11]]
+        >>> Classifier.train_fisher(X0, X1)
+        >>> X = [[1,2],[3,7],[5,11],[2,13]]
+        >>> classes = Classifier.classify_fisher(X)
+        The computed values (classes) will be:
+        >>> [0, 1, 1, 1]
+
+        With different sets of training points:
+        >>> X2 = [[1,1],[2,2]]
+        >>> X3 = [[2,1],[4,2]]
+        >>> Classifier.train_fisher(X2, X3)
+        >>> X = [[1,2],[3,2],[20,30]]
+        >>> classes = Classifier.classify_fisher(X)
+        The computed values (classes) will be:
+        >>> [0, 1, 0]
 
         """
         # Turn list into a array for latter purposes,
