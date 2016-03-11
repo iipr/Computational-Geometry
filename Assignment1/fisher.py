@@ -5,36 +5,71 @@ import numpy as np
 
 
 class Fisher:
+    """Fisher's lineal discriminant algorithm to classify points.
 
-    '''Implements Fisher's lineal discriminant
-    method to classify points (see Bishop p.186)'''
+    First, the matrix Sw, the weight vector w and the threshold c are computed,
+    depending on the sets of input training points given by X0 and X1.
+    Afterwards, the points given by X are classified into one of the two
+    classes (0 or 1) depending on the threshold c.
+
+    Note
+    ----
+    More information about the method can be found at Bishop (page 186 and after).
+
+    Attributes
+    ----------
+    w : ndarray[float]
+        Weight vector.
+    c : float
+        Threshold for Fisher's method.
+
+    """
+
 
     def __init__(self):
-        '''Basic constructor'''
+        """Instantiate w and c."""
         self.w = None
         self.c = None
 
-    def compute_umbral(self, X0, X1, vmu0, vmu1):
-        '''Computes value c for
-        Fisher's lineal discriminant'''
 
-        # Computes the standard deviation of the projected points
+    def compute_threshold(self, X0, X1, vmu0, vmu1):
+        """Return threshold c for Fisher's lineal discriminant.
+
+        Parameters
+        ----------
+        X0
+            Set of training points for class 0.
+        X1
+            Set of training points for class 1.
+        vmu0
+            Vectorial mean for class 0.
+        vmu1
+            Vectorial mean for class 1.
+
+        Returns
+        -------
+        c
+            Threshold that gives the class distinction.
+
+        """
+        # Compute the standard deviation of the projected points:
         sigma0 = np.std(np.dot(self.w, X0.transpose()))
         sigma1 = np.std(np.dot(self.w, X1.transpose()))
 
-        # Computes the projected means
+        # Compute the projected means:
         mu0 = self.w.dot(vmu0.transpose())
         mu1 = self.w.dot(vmu1.transpose())
 
-        # Computes the number of points on each class
+        # Compute the number of points on each class and the total:
         N0 = X0.shape[0]
         N1 = X1.shape[0]
         N = N0 + N1
 
-        # Computes the probabily of each class
+        # Compute the probability of each class:
         p0 = N0 / N
         p1 = N1 / N
-        # Computes the coefficients for the threshold
+
+        # Compute the coefficients for the threshold:
         c = (
             mu1 * sigma0**2 - mu0 * sigma1**2 - np.sqrt(
                 2 * sigma1**2 * (
@@ -46,46 +81,92 @@ class Fisher:
             sigma0**2 - sigma1**2)
         return c
 
+
     def compute_Sw(self, X0, X1):
-        # Computes the number of points on each class
+        """Return matrix Sw for Fisher's lineal discriminant.
+
+        Parameters
+        ----------
+        X0
+            Set of training points for class 0.
+        X1
+            Set of training points for class 1.
+
+        Returns
+        -------
+        Sw
+            Total within-class covariance matrix.
+
+        """
+        # Compute the number of points on each class:
         N0 = X0.shape[0]
         N1 = X1.shape[0]
 
+        # Compute and return Sw = S0 + S1:
         S0 = np.cov(X0, y=None, rowvar=0, ddof=N0 - 1)
         S1 = np.cov(X1, y=None, rowvar=0, ddof=N1 - 1)
         return (S0 + S1)
 
+
     def train_fisher(self, X0, X1):
-        # Turns lists into arrays for latter purposes
-        # Nothing happens if they were arrays already
+        """Compute and update vector w and value c for
+        Fisher's lineal discriminant.
+
+        Parameters
+        ----------
+        X0
+            Set of training points for class 0.
+        X1
+            Set of training points for class 1.
+
+        """
+        # Turn lists into arrays for latter purposes,
+        # nothing happens if they were arrays already:
         X0 = np.asarray(X0)
         X1 = np.asarray(X1)
-        # Compute vectorial means
+
+        # Compute vectorial means:
         mu0 = np.mean(X0, axis=0)
         mu1 = np.mean(X1, axis=0)
 
-        # Computes matrix S_w
+        # Compute matrix Sw with an auxiliar function:
         Sw = self.compute_Sw(X0, X1)
 
-        # Computes vector w
+        # Compute vector w and normalize it:
         w = np.linalg.solve(Sw, mu1 - mu0)
         wnorm = np.linalg.norm(w)
-        # And normalize it
         self.w = w / wnorm
 
-        self.c = self.compute_umbral(X0, X1, mu0, mu1).astype(float)
+        # Compute threshold c with an auxiliar function:
+        self.c = self.compute_threshold(X0, X1, mu0, mu1).astype(float)
+
 
     def classify_fisher(self, X):
-        '''Classify the points given by X using matrix w
+        """Classify the points given by X using matrix w
         and the threshold c calculated by Fisher's
-        method, according to the training points'''
+        method, according to the training points.
+
+        Parameters
+        ----------
+        X
+            Set of points to classify according to Fisher's method.
+
+        Returns
+        -------
+        clasification
+            List of 0-1 values representing the class that each point belongs to.
+
+        """
+        # Turn list into a array for latter purposes,
+        # nothing happens if it was an array already:
         X = np.asarray(X)
-        # Computes projected points
+
+        # Compute projected points:
         y = np.dot(self.w, X.transpose())
 
-        # Returns a list of 0-1 values
-        # Class 0: y <= c
-        # Class 1: y > c
+        # Returns a list of 0-1 values:
+        # Class 0: y(k) <= c
+        # Class 1: y(k) > c
         clasificacion = (y > self.c).astype(int)
 
         return clasificacion.tolist()
