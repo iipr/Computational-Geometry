@@ -255,5 +255,4 @@ class Fisher:
         # Class 0: y(k) <= c
         # Class 1: y(k) > c
         clasificacion = (y > self.c).astype(int)
-
         return clasificacion.tolist()
