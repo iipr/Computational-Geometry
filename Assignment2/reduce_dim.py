@@ -15,7 +15,18 @@ from sklearn import lda
 class LDA:
     
     def fit(self, X_train, y_train, reduced_dim):
-        pass #incluye aquí tu código
+
+        #Computes Sw (Like at fisher.py)
+
+        #Computes Sb (la nueva)
+
+        #Computes the eighenvalues and eighenvectors (eigh.eigh(Sb, Sw))
+
+        #Sort the eighenvectors (np.argsort)
+
+        #Changes to inverse order (a[::-1])
+
+        #Computes the W matrix 
 
     def transform(self, X):
         pass #incluye aquí tu código
@@ -30,8 +41,13 @@ class PCA:
 
 if __name__ == "__main__" :
 
-    FisherMulticlase = LDA()
-    "Pruebas de lda"
+
+    """Lda tests, examples from datasets.
+    In our asignment: 
+    Fm = LDA()
+    Fm.fit(X, y, 2)
+    Fm.transform(X)"""
+
     db = datasets.load_digits()
 
     #Cargamos lda para 2 componentes 
