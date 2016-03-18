@@ -13,7 +13,10 @@ from sklearn import lda
 
 
 class LDA:
-    
+    def __init__(self):
+        self.w = None
+        self.r_dim = None
+
     def fit(self, X_train, y_train, reduced_dim):
 
         #Computes Sw (Like at fisher.py)
@@ -26,10 +29,27 @@ class LDA:
 
         #Changes to inverse order (a[::-1])
 
-        #Computes the W matrix 
+        #Computes the W matrix (taking the eighvectors corresponding 
+        #to the highest 'reduced_dim' eighenvalues)
 
     def transform(self, X):
-        pass #incluye aquí tu código
+        """Project data to maximize class separation.
+
+        Parameters:
+        ----------
+        X
+            Array of points to be projected
+
+
+        Returns:	
+        ----------
+        X_new
+            Array projected from X input array using the W"""
+
+        #Project the points of X
+        X_new = self.w.dot(X.transpose())
+
+        return X_new
 
 class PCA:
     
