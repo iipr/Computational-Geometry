@@ -34,31 +34,23 @@ if __name__ == "__main__" :
     "Pruebas de lda"
     db = datasets.load_digits()
 
-    db.keys()
-
-    db.data[0].shape
-
-    db.images[0]
-
-    db.data[0]
-
-    plt.imshow(db.images[0], cmap='gray')
-
+    #Cargamos lda para 2 componentes 
     fisher_LDA = lda.LDA(n_components=2)
 
+    #Cargamos datos de nuestro dataset
     X, y = db.data, db.target
 
+    #Hacemos el entrenamiento con lda
     fisher_LDA.fit(X, y)
 
+    #Hacemos la reduccion lda con los mismos puntos
     X_reduced = fisher_LDA.transform(X)
 
-    X_reduced.shape
-
+    #Pintamos todos nuestros puntos
     plt.plot(X_reduced[:, 0], X_reduced[:, 1], 'o')
 
-    y == 7
-
-    for k in [1, 8, 0]:
+    #Pintamos los 1s, los 8s y los 0s de distinto color
+    for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
 
     plt.show()
