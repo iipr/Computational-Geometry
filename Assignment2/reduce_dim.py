@@ -31,6 +31,9 @@ class LDA:
 
         #Computes the W matrix (taking the eighvectors corresponding 
         #to the highest 'reduced_dim' eighenvalues)
+        
+        #OJO_1: Kike es un petacas.
+        #OJO_2: Proyectar con con la base ortonormal del subespacio generado por los autovectores. 
 
     def transform(self, X):
         """Project data to maximize class separation.
