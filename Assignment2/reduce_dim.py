@@ -31,7 +31,16 @@ class LDA:
 
         #Computes the W matrix (taking the eighvectors corresponding 
         #to the highest 'reduced_dim' eighenvalues)
-        
+        evals,evecs = linalg.eig(Sw,Sb)
+        indices = argsort(evals)
+        indices = indices[::-1]
+        evecs = evecs[:,indices]
+        evals = evals[indices]
+        w = evecs[:,:reduced_dim]
+        #print evals, w
+    
+        newData = dot(data,w)
+        return newData,w
         #OJO_1: Kike es un petacas.
         #OJO_2: Proyectar con con la base ortonormal del subespacio generado por los autovectores. 
 
