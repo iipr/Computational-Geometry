@@ -67,10 +67,13 @@ class LDA:
 
     def transform(self, X):
         """Project data to maximize class separation.
+
         Parameters:
         ----------
         X
             Array of points to be projected
+
+
         Returns:	
         ----------
         X_new
