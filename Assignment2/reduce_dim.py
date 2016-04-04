@@ -4,6 +4,12 @@ from __future__ import division
 import numpy as np 
 from scipy.linalg import eigh 
 
+#For testing purposes
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn import lda
+from scipy.linalg import eig 
+
 
 class LDA:
     def __init__(self):
@@ -26,29 +32,30 @@ class LDA:
         #Computes the W matrix (taking the eighvectors corresponding 
         #to the highest 'reduced_dim' eighenvalues)
 
+        # Centre data  
         #data -= data.mean(axis=0)  
-        nData = shape(X_train)[0]  
-        nDim = shape(X_train)[1]  
+        nData = np.shape(X_train)[0]  
+        nDim = np.shape(X_train)[1]  
           
-        Sw = zeros((nDim,nDim))  
-        Sb = zeros((nDim,nDim))  
+        Sw = np.zeros((nDim,nDim))  
+        Sb = np.zeros((nDim,nDim))  
           
-        St = np.cov(X.transpose())
+        St = np.cov(X_train.transpose(), bias = 1) * nData
           
         # Loop over classes  
         classes = np.unique(y_train)  
         for i in range(len(classes)):  
             # Find relevant datapoints  
-            indices = squeeze(where(y_train==classes[i]))  
-            d = squeeze(X[indices,:])  
-            Sw += np.cov(d.transpose(),bias=1)*shape(indices)[0]
+            indices = np.squeeze(np.where(y_train==classes[i]))  
+            d = np.squeeze(X_train[indices,:])  
+            Sw += np.cov(d.transpose(), bias = 1) * (np.shape(indices)[0])
               
-        Sb = St - Sw  
+        Sb = np.subtract(St, Sw)  
         # Now solve for W  
         # Compute eigenvalues, eigenvectors and sort into order  
         #evals,evecs = linalg.eig(dot(linalg.pinv(Sw),sqrt(Sb)))  
-        evals,evecs = eigh(Sw,Sb)  
-        indices = argsort(evals)  
+        evals,evecs = eig(Sb,Sw)  
+        indices = np.argsort(evals)  
         indices = indices[::-1]  
         evecs = evecs[:,indices]  
         evals = evals[indices]  
@@ -86,13 +93,6 @@ class PCA:
 
 if __name__ == "__main__" :
 
-
-    """Lda tests, examples from datasets.
-    In our asignment: 
-    Fm = LDA()
-    Fm.fit(X, y, 2)
-    Fm.transform(X)"""
-
     db = datasets.load_digits()
 
     #Cargamos lda para 2 componentes 
@@ -113,5 +113,16 @@ if __name__ == "__main__" :
     #Pintamos los 1s, los 8s y los 0s de distinto color
     for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
+
+    plt.show()
+
+    #Lda tests, examples from datasets.
+    
+    mi_lda = LDA()
+    mi_lda.fit(X, y, 2)
+    X_reduced_1 = mi_lda.transform(X)
+    plt.plot(X_reduced_1[:, 0], X_reduced_1[:, 1], 'o')
+    for k in [0, 1, 8]:
+        plt.plot(X_reduced_1[y == k, 0], X_reduced_1[y == k, 1], 'o')
 
     plt.show()
