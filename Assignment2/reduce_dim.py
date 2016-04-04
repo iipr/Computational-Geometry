@@ -4,18 +4,12 @@ from __future__ import division
 import numpy as np 
 from scipy.linalg import eigh 
 
-#for tests
-import matplotlib.pyplot as plt
-
-from sklearn import datasets
-
-from sklearn import lda
-
 
 class LDA:
     def __init__(self):
         self.w = None
-        self.r_dim = None
+        self.mean = None
+        #self.r_dim = None
 
     def fit(self, X_train, y_train, reduced_dim):
 
@@ -32,23 +26,21 @@ class LDA:
         #Computes the W matrix (taking the eighvectors corresponding 
         #to the highest 'reduced_dim' eighenvalues)
 
-        # Centre data  
-        #X - np.mean(X_train, axis=0).
-        data -= data.mean(axis=0)  
-        nData = shape(data)[0]  
-        nDim = shape(data)[1]  
+        #data -= data.mean(axis=0)  
+        nData = shape(X_train)[0]  
+        nDim = shape(X_train)[1]  
           
         Sw = zeros((nDim,nDim))  
         Sb = zeros((nDim,nDim))  
           
-        St = cov(transpose(data))  
+        St = np.cov(X.transpose())
           
         # Loop over classes  
-        classes = unique(labels)  
+        classes = np.unique(y_train)  
         for i in range(len(classes)):  
             # Find relevant datapoints  
-            indices = squeeze(where(labels==classes[i]))  
-            d = squeeze(data[indices,:])  
+            indices = squeeze(where(y_train==classes[i]))  
+            d = squeeze(X[indices,:])  
             Sw += np.cov(d.transpose(),bias=1)*shape(indices)[0]
               
         Sb = St - Sw  
@@ -62,6 +54,7 @@ class LDA:
         evals = evals[indices]  
         w = evecs[:,:reduced_dim]  
         #print evals, w  
+        self.mean = np.mean(X_train, axis=0)
         self.w = w
         #OJO: Proyectar con la base ortonormal del subespacio generado por los autovectores. 
 
@@ -76,6 +69,8 @@ class LDA:
         X_new
             Array projected from X input array using the W"""
 
+        # Centre data  
+        X = X - self.mean
         #Project the points of X
         X_new = self.w.dot(X.transpose())
 
