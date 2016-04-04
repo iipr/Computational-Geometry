@@ -8,7 +8,7 @@ from scipy.linalg import eigh
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn import lda
-from scipy.linalg import eig 
+#from scipy.linalg import eig 
 
 
 class LDA:
@@ -34,35 +34,50 @@ class LDA:
 
         # Centre data  
         #data -= data.mean(axis=0)  
+
         nData = np.shape(X_train)[0]  
         nDim = np.shape(X_train)[1]  
           
         Sw = np.zeros((nDim,nDim))  
-        Sb = np.zeros((nDim,nDim))  
+        #Sb = np.zeros((nDim,nDim))  
           
         St = np.cov(X_train.transpose(), bias = 1) * nData
           
-        # Loop over classes  
-        classes = np.unique(y_train)  
-        for i in range(len(classes)):  
+        #Label the classes and loop on them
+        labels = np.unique(y_train)
+        #print labels
+        #Count the number of points on each class
+        Nk = np.bincount(y_train)  
+        #print Nk
+        #print range(len(labels))
+        for Ck in range(len(labels)):  
             # Find relevant datapoints  
-            indices = np.squeeze(np.where(y_train==classes[i]))  
-            d = np.squeeze(X_train[indices,:])  
-            Sw += np.cov(d.transpose(), bias = 1) * (np.shape(indices)[0])
+            #indices = np.squeeze(np.where(y_train == classes[i]))  
+            #print indices
+            #d = np.squeeze(X_train[indices,:])   
+            #otra forma para ver los puntos de la cada clase
+            Xk = X_train[y_train == Ck, :]
+            #print Xk
+            Sw = np.add(Sw, np.cov(Xk.transpose(), bias = 1) * Nk[Ck])
+            #print np.cov(Xk.transpose(), bias = 1)
+            #print np.shape(np.cov(Xk.transpose(), bias = 1))[0], np.shape(np.cov(d.transpose(), bias = 1))[1]
               
         Sb = np.subtract(St, Sw)  
+        #print np.shape(Sw)[0], np.shape(Sw)[1]
+        #print Sw
         # Now solve for W  
         # Compute eigenvalues, eigenvectors and sort into order  
         #evals,evecs = linalg.eig(dot(linalg.pinv(Sw),sqrt(Sb)))  
-        evals,evecs = eig(Sb,Sw)  
+        evals, evecs = eigh(Sb, Sw) 
+        #evals, evecs = np.linalg.eig(np.linalg.inv(Sw).dot(Sb)) 
         indices = np.argsort(evals)  
         indices = indices[::-1]  
         evecs = evecs[:,indices]  
         evals = evals[indices]  
-        w = evecs[:,:reduced_dim]  
+        evecs = evecs[:,:reduced_dim]  
         #print evals, w  
-        self.mean = np.mean(X_train, axis=0)
-        self.w = w
+        self.mean = np.mean(X_train, axis = 0)
+        self.w = evecs
         #OJO: Proyectar con la base ortonormal del subespacio generado por los autovectores. 
 
     def transform(self, X):
@@ -79,7 +94,7 @@ class LDA:
         # Centre data  
         X = X - self.mean
         #Project the points of X
-        X_new = self.w.dot(X.transpose())
+        X_new = X.dot(self.w)
 
         return X_new
 
@@ -114,7 +129,7 @@ if __name__ == "__main__" :
     for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
 
-    plt.show()
+    #plt.show()
 
     #Lda tests, examples from datasets.
     
