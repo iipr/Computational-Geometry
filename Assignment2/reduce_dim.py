@@ -8,6 +8,7 @@ from scipy.linalg import eigh
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn import lda
+from sklearn.decomposition import PCA
 #from scipy.linalg import eig 
 
 
@@ -18,50 +19,55 @@ class LDA:
         #self.r_dim = None
 
     def fit(self, X_train, y_train, reduced_dim):
+        #Computes St and Sw
+        #Computes Sb = St - Sw
+        #Computes the eigenvalues and eigenvectors of Sw^(-1)Sb: eigh(Sb, Sw)
+        #Sort the eigenvectors with np.argsort
+        #Reverse order with a[::-1]
+        #Computes W matrix by taking the eigenvectors corresponding 
+        #to the highest 'reduced_dim' eigenvalues
 
-        #Computes Sw (Like at fisher.py)
-
-        #Computes Sb (la nueva)
-
-        #Computes the eighenvalues and eighenvectors (eigh.eigh(Sb, Sw))
-
-        #Sort the eighenvectors (np.argsort)
-
-        #Changes to inverse order (a[::-1])
-
-        #Computes the W matrix (taking the eighvectors corresponding 
-        #to the highest 'reduced_dim' eighenvalues)
-
-        # Centre data  
-        #data -= data.mean(axis=0)  
-
-        nData = np.shape(X_train)[0]  
-        nDim = np.shape(X_train)[1]  
+        N = np.shape(X_train)[0]  
+        D = np.shape(X_train)[1]  
           
-        Sw = np.zeros((nDim,nDim))  
-        #Sb = np.zeros((nDim,nDim))  
+        Sw = np.zeros((D,D))  
+        #Sb = np.zeros((D,D)) #Nos podemos ahorrar declararla creo
+        St = np.cov(X_train.transpose(), bias = 1) * N
           
-        St = np.cov(X_train.transpose(), bias = 1) * nData
-          
-        #Label the classes and loop on them
+        #Label the classes in order to loop on them
         labels = np.unique(y_train)
-        #print labels
         #Count the number of points on each class
-        Nk = np.bincount(y_train)  
+        Nk = np.bincount(y_train)
+        #print labels  
         #print Nk
         #print range(len(labels))
-        for Ck in range(len(labels)):  
-            # Find relevant datapoints  
+        for Ck in range(len(labels)):   
             #indices = np.squeeze(np.where(y_train == classes[i]))  
             #print indices
             #d = np.squeeze(X_train[indices,:])   
             #otra forma para ver los puntos de la cada clase
+            #Find relevant datapoints:
             Xk = X_train[y_train == Ck, :]
-            #print Xk
             Sw = np.add(Sw, np.cov(Xk.transpose(), bias = 1) * Nk[Ck])
+            #print Xk
             #print np.cov(Xk.transpose(), bias = 1)
             #print np.shape(np.cov(Xk.transpose(), bias = 1))[0], np.shape(np.cov(d.transpose(), bias = 1))[1]
               
+        ######################## Sw es puto igual a la que da el fichero linear_discriminant_analysis.py:
+#        mean_vectors = []
+#        for cl in range(len(labels)):
+#            mean_vectors.append(np.mean(X[y_train == cl], axis=0))
+#        S_W = np.zeros((X_train.shape[1], X_train.shape[1]))
+#        for cl, mv in zip(range(len(labels)), mean_vectors):
+#            class_sc_mat = np.zeros((X_train.shape[1], X_train.shape[1]))
+#            for row in X_train[y_train == cl]:
+#                row, mv = row.reshape(X_train.shape[1], 1), mv.reshape(X_train.shape[1], 1)
+#                class_sc_mat += (row - mv).dot((row - mv).T)
+#            S_W += class_sc_mat
+        #print S_W
+        #print Sw  
+        ########################      
+
         Sb = np.subtract(St, Sw)  
         #print np.shape(Sw)[0], np.shape(Sw)[1]
         #print Sw
@@ -98,29 +104,53 @@ class LDA:
 
         return X_new
 
-class PCA:
-    
+class PCA1:   #<--- OJO! Definido como PCA1 para poder comparar con el PCA de sklearn 
+    def __init__(self):
+        self.w_ = None
+
     def fit(self, X_train, reduced_dim):
-        pass #incluye aquí tu código
+        cov_mat = self._covariance_matrix(X_train)
+        self.e_vals_, self.e_vecs_ = self._eigendecom(cov_mat)
+        self.w_ = self._projection_matrix(eig_vals=self.e_vals_,
+                                          eig_vecs=self.e_vecs_,
+                                          reduced_dim=reduced_dim)
+        return self
 
     def transform(self, X):
-        pass #incluye aquí tu código
+        return X.dot(self.w_)
+
+    def _covariance_matrix(self, X):
+        mean_vec = np.mean(X, axis=0)
+        cov_mat = (X - mean_vec).T.dot((X - mean_vec)) / (X.shape[0] - 1)
+        return cov_mat
+
+    def _eigendecom(self, cov_mat):
+        e_vals, e_vecs = np.linalg.eig(cov_mat)
+        sort_idx = np.argsort(e_vals)[::-1]
+        e_vals, e_vecs = e_vals[sort_idx], e_vecs[sort_idx]
+        return e_vals, e_vecs
+
+    def _projection_matrix(self, eig_vals, eig_vecs, reduced_dim):
+        matrix_w = np.vstack([eig_vecs[:, i] for i in range(reduced_dim)]).T
+        return matrix_w
+
 
 if __name__ == "__main__" :
-
-    db = datasets.load_digits()
-
-    #Cargamos lda para 2 componentes 
-    fisher_LDA = lda.LDA(n_components=2)
-
     #Cargamos datos de nuestro dataset
+    db = datasets.load_digits()
     X, y = db.data, db.target
 
+    #Cargamos lda para 2 componentes 
+#    fisher_LDA = lda.LDA(n_components=2)
+    fisher_PCA = PCA(n_components=2)
+
     #Hacemos el entrenamiento con lda
-    fisher_LDA.fit(X, y)
+#    fisher_LDA.fit(X, y)
+    fisher_PCA.fit(X)
 
     #Hacemos la reduccion lda con los mismos puntos
-    X_reduced = fisher_LDA.transform(X)
+ #   X_reduced = fisher_LDA.transform(X)
+    X_reduced = fisher_PCA.transform(X)
 
     #Pintamos todos nuestros puntos
     plt.plot(X_reduced[:, 0], X_reduced[:, 1], 'o')
@@ -128,16 +158,22 @@ if __name__ == "__main__" :
     #Pintamos los 1s, los 8s y los 0s de distinto color
     for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
+    plt.show()
 
-    #plt.show()
+    #LDA tests, examples from datasets.
+#    mi_lda = LDA()
+#    mi_lda.fit(X, y, 2)
+#    X_reduced_1 = mi_lda.transform(X)
+#    plt.plot(X_reduced_1[:, 0], X_reduced_1[:, 1], 'o')
+#    for k in [0, 1, 8]:
+#        plt.plot(X_reduced_1[y == k, 0], X_reduced_1[y == k, 1], 'o')
+#    plt.show()
 
-    #Lda tests, examples from datasets.
-    
-    mi_lda = LDA()
-    mi_lda.fit(X, y, 2)
-    X_reduced_1 = mi_lda.transform(X)
-    plt.plot(X_reduced_1[:, 0], X_reduced_1[:, 1], 'o')
+    #PCA tests, examples from datasets.
+    mi_pca = PCA1()
+    mi_pca.fit(X, 2)
+    X_reduced_2 = mi_pca.transform(X)
+    plt.plot(X_reduced_2[:, 0], X_reduced_2[:, 1], 'o')
     for k in [0, 1, 8]:
-        plt.plot(X_reduced_1[y == k, 0], X_reduced_1[y == k, 1], 'o')
-
+        plt.plot(X_reduced_2[y == k, 0], X_reduced_2[y == k, 1], 'o')
     plt.show()
