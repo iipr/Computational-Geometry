@@ -8,7 +8,7 @@ from scipy.linalg import eigh
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn import lda
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA as sklpca
 #from scipy.linalg import eig 
 
 
@@ -104,36 +104,29 @@ class LDA:
 
         return X_new
 
-class PCA1:   #<--- OJO! Definido como PCA1 para poder comparar con el PCA de sklearn 
+class PCA:
     def __init__(self):
-        self.w_ = None
+        self.w = None
+
+    def _covariance_matrix(self, X):
+        mean = np.mean(X, axis = 0)
+        St = (X - mean).T.dot((X - mean)) / (X.shape[0] - 1)
+        return St
+
+    def _orderedeigenvecs(self, St):
+        evals, evecs = np.linalg.eig(St)
+        sorted_ind = np.argsort(evals)[::-1]
+        evecs = evecs[sorted_ind]
+        return evecs
 
     def fit(self, X_train, reduced_dim):
-        cov_mat = self._covariance_matrix(X_train)
-        self.e_vals_, self.e_vecs_ = self._eigendecom(cov_mat)
-        self.w_ = self._projection_matrix(eig_vals=self.e_vals_,
-                                          eig_vecs=self.e_vecs_,
-                                          reduced_dim=reduced_dim)
+        St = self._covariance_matrix(X_train)
+        evecs = self._orderedeigenvecs(St)
+        self.w = np.vstack([evecs[:, i] for i in range(reduced_dim)]).T
         return self
 
     def transform(self, X):
-        return X.dot(self.w_)
-
-    def _covariance_matrix(self, X):
-        mean_vec = np.mean(X, axis=0)
-        cov_mat = (X - mean_vec).T.dot((X - mean_vec)) / (X.shape[0] - 1)
-        return cov_mat
-
-    def _eigendecom(self, cov_mat):
-        e_vals, e_vecs = np.linalg.eig(cov_mat)
-        sort_idx = np.argsort(e_vals)[::-1]
-        e_vals, e_vecs = e_vals[sort_idx], e_vecs[sort_idx]
-        return e_vals, e_vecs
-
-    def _projection_matrix(self, eig_vals, eig_vecs, reduced_dim):
-        matrix_w = np.vstack([eig_vecs[:, i] for i in range(reduced_dim)]).T
-        return matrix_w
-
+        return X.dot(self.w)
 
 if __name__ == "__main__" :
     #Cargamos datos de nuestro dataset
@@ -142,7 +135,7 @@ if __name__ == "__main__" :
 
     #Cargamos lda para 2 componentes 
 #    fisher_LDA = lda.LDA(n_components=2)
-    fisher_PCA = PCA(n_components=2)
+    fisher_PCA = sklpca(n_components=2)
 
     #Hacemos el entrenamiento con lda
 #    fisher_LDA.fit(X, y)
@@ -158,7 +151,8 @@ if __name__ == "__main__" :
     #Pintamos los 1s, los 8s y los 0s de distinto color
     for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
-    plt.show()
+    plt.figure()
+    #plt.show()
 
     #LDA tests, examples from datasets.
 #    mi_lda = LDA()
@@ -170,10 +164,11 @@ if __name__ == "__main__" :
 #    plt.show()
 
     #PCA tests, examples from datasets.
-    mi_pca = PCA1()
+    mi_pca = PCA()
     mi_pca.fit(X, 2)
     X_reduced_2 = mi_pca.transform(X)
     plt.plot(X_reduced_2[:, 0], X_reduced_2[:, 1], 'o')
     for k in [0, 1, 8]:
         plt.plot(X_reduced_2[y == k, 0], X_reduced_2[y == k, 1], 'o')
+    #plt.figure()
     plt.show()
