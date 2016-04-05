@@ -57,7 +57,7 @@ class LDA:
         evecs = evecs[:,indices]  
         evals = evals[indices]  
         evecs = evecs[:,:reduced_dim]  
-        evecs /= np.apply_along_axis(np.linalg.norm, 0, evecs)
+        #evecs /= np.apply_along_axis(np.linalg.norm, 0, evecs)
 
         self.mean = np.mean(X_train, axis = 0)
         self.w = evecs
@@ -110,16 +110,16 @@ if __name__ == "__main__" :
     X, y = db.data, db.target
 
     #Cargamos lda para 2 componentes 
-#    fisher_LDA = lda.LDA(n_components=2)
-    fisher_PCA = sklpca(n_components=2)
+    fisher_LDA = lda.LDA(n_components=2)
+#    fisher_PCA = sklpca(n_components=2)
 
     #Hacemos el entrenamiento con lda
-#    fisher_LDA.fit(X, y)
-    fisher_PCA.fit(X)
+    fisher_LDA.fit(X, y)
+#    fisher_PCA.fit(X)
 
     #Hacemos la reduccion lda con los mismos puntos
- #   X_reduced = fisher_LDA.transform(X)
-    X_reduced = fisher_PCA.transform(X)
+    X_reduced = fisher_LDA.transform(X)
+#    X_reduced = fisher_PCA.transform(X)
 
     #Pintamos todos nuestros puntos
     plt.plot(X_reduced[:, 0], X_reduced[:, 1], 'o')
@@ -127,25 +127,25 @@ if __name__ == "__main__" :
     #Pintamos los 1s, los 8s y los 0s de distinto color
     for k in [0, 1, 8]:
         plt.plot(X_reduced[y == k, 0], X_reduced[y == k, 1], 'o')
-    plt.axis([-40,40,-30,30])
+    plt.axis([-20,15,-15,10])
     plt.figure()
     #plt.show()
 
     #LDA tests, examples from datasets.
-#    mi_lda = LDA()
-#    mi_lda.fit(X, y, 2)
-#    X_reduced_1 = mi_lda.transform(X)
-#    plt.plot(X_reduced_1[:, 0], X_reduced_1[:, 1], 'o')
-#    for k in [0, 1, 8]:
-#        plt.plot(X_reduced_1[y == k, 0], X_reduced_1[y == k, 1], 'o')
-#    plt.show()
+    mi_lda = LDA()
+    mi_lda.fit(X, y, 2)
+    X_reduced_1 = mi_lda.transform(X)
+    plt.plot(X_reduced_1[:, 0], X_reduced_1[:, 1], 'o')
+    for k in [0, 1, 8]:
+        plt.plot(X_reduced_1[y == k, 0], X_reduced_1[y == k, 1], 'o')
+    plt.show()
 
     #PCA tests, examples from datasets.
-    mi_pca = PCA()
-    mi_pca.fit(X, 2)
-    X_reduced_2 = mi_pca.transform(X)
-    plt.plot(X_reduced_2[:, 0], X_reduced_2[:, 1], 'o')
-    for k in [0, 1, 8]:
-        plt.plot(X_reduced_2[y == k, 0], X_reduced_2[y == k, 1], 'o')
+#    mi_pca = PCA()
+#    mi_pca.fit(X, 2)
+#    X_reduced_2 = mi_pca.transform(X)
+#    plt.plot(X_reduced_2[:, 0], X_reduced_2[:, 1], 'o')
+#    for k in [0, 1, 8]:
+#        plt.plot(X_reduced_2[y == k, 0], X_reduced_2[y == k, 1], 'o')
     #plt.figure()
-    plt.show()
+#    plt.show()
