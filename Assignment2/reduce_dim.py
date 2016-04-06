@@ -42,7 +42,21 @@ class LDA:
         self.mean = None
 
     def fit(self, X_train, y_train, reduced_dim):
+        """Computes the projection matrix w for lda.
 
+        Parameters
+        ----------
+        X_train
+            Set of training points.
+        y_train
+            Vector of classes of X_train points.
+        reduced_dim
+            Target dimension of the reduction.
+
+        Examples
+        --------
+
+        """
         N = np.shape(X_train)[0]
         D = np.shape(X_train)[1]
         
@@ -72,34 +86,108 @@ class LDA:
         self.w = evecs
 
     def transform(self, X):
-        """Project data to maximize class separation.
-        Parameters:
+        """Project the points of X using the 
+        w matrix calculated with fit
+
+        Parameters
         ----------
         X
-            Array of points to be projected
+            Set of points to be projected.
+
         Returns:	
         ----------
         X_new
-            Array projected from X input array using the W"""
+            Array projected from X points using the w
+        
+        Examples
+        --------
 
-        # Centre data  
+        """
+
+        # Centre data before projecting
         X = X - self.mean
         #Project the points of X
         X_new = X.dot(self.w)
         return X_new
 
 class PCA:
+    """Principal component analysis for dimensionality reduction.
+
+    First, computes the covariance matrix of the set of 
+    input training points given by X_train. Then, obtains the projection
+    matrix according to the pca method.
+
+    Afterwards, the points given by X are projected using the w matrix
+    in order to reduce the dimensionality.
+
+    Note
+    ----
+    More information about the method can be found at Bishop (page 561 and after).
+
+    Attributes
+    ----------
+    w : ndarray[float]
+        Projection matrix.
+    mean : float
+        Mean of X_train points.
+
+    Methods
+    -------
+    _covariance_matrix
+        Returns the covariance matrix St.
+    _orderedeigenvecs
+        Returns the ordered eigenvectors of a given matrix. 
+    fit
+        Computes the projection matrix w of the pca method.
+    transform
+        Projects the data, reducing dimensionality using the w computed in fit.
+
+    """
     def __init__(self):
         self.w = None
         self.mean = None
 
     def _covariance_matrix(self, X):
+        """Computes the coovariance 
+        matrix of the given points.
+
+        Parameters
+        ----------
+        X
+            Set of points.
+        
+        Returns:	
+        ----------
+        St
+            Covariance matrix of the X points.
+  
+        Examples
+        --------
+
+        """
         #mean = np.mean(X, axis = 0)
         St = np.cov(X.T, bias = 1) * np.shape(X)[0]
         #St = (X - mean).T.dot((X - mean))# / (X.shape[0] - 1)
         return St
 
     def _orderedeigenvecs(self, St):
+        """Computes the eigenvectors of 
+        the given matrix and order it.
+
+        Parameters
+        ----------
+        St
+            Matrix.
+        
+        Returns:	
+        ----------
+        evecs
+            Matrix of ordered eigenvectors.
+  
+        Examples
+        --------
+
+        """
         #evals, evecs = np.linalg.eig(St)
         evals, evecs = eigh(St)
         sorted_ind = np.argsort(evals)[::-1]
@@ -107,6 +195,19 @@ class PCA:
         return evecs
 
     def fit(self, X_train, reduced_dim):
+        """Computes the projection matrix w for pca.
+
+        Parameters
+        ----------
+        X_train
+            Set of training points.
+        reduced_dim
+            Target dimension of the reduction.
+
+        Examples
+        --------
+
+        """
         St = self._covariance_matrix(X_train)
         evecs = self._orderedeigenvecs(St)
         self.w = evecs[:,:reduced_dim]  
@@ -115,6 +216,25 @@ class PCA:
         return self
 
     def transform(self, X):
-        # Centre data  
+        """Project the points of X using the 
+        w matrix calculated with fit
+
+        Parameters
+        ----------
+        X
+            Set of points to be projected.
+
+        Returns:	
+        ----------
+        X_new
+            Array projected from X points using the w
+        
+        Examples
+        --------
+
+        """
+        # Centre data
         X = X - self.mean
-        return X.dot(self.w)
+        # Project data points
+        X_new = X.dot(self.w)
+        return X_new
