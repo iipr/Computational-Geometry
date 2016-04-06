@@ -42,8 +42,6 @@ class LDA:
         self.w = None
         self.mean = None
 
-
-
     def fit(self, X_train, y_train, reduced_dim):
         """Computes the projection matrix w for lda.
 
@@ -60,8 +58,10 @@ class LDA:
         --------
 
         """
-        N = np.shape(X_train)[0]
-        D = np.shape(X_train)[1]
+        # Compute and save the vectorial mean for latter purposes
+        self.mean = np.mean(X_train, axis=0)
+        # Compute the number of training points and their dimension
+        N, D = np.shape(X_train)
 
         Sw = np.zeros((D, D))
         St = np.cov(X_train.T, bias=1) * N
@@ -71,7 +71,7 @@ class LDA:
         # Count the number of points on each class
         Nk = np.bincount(y_train)
         for Ck in labels:
-            # Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminars poniendo su valor en la siguiente
+            #Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminars poniendo su valor en la siguiente
             Sw = np.add(Sw, np.cov(X_train[y_train == Ck, :].T, bias=1) * Nk[Ck])
 
         Sb = np.subtract(St, Sw)
@@ -81,7 +81,6 @@ class LDA:
         evecs = evecs[:, indices]
         evecs = evecs[:, :reduced_dim]
 
-        self.mean = np.mean(X_train, axis=0)
         self.w = evecs
 
     def transform(self, X):
@@ -95,18 +94,15 @@ class LDA:
 
         Returns:
         ----------
-        X_new
-            Array projected from X points using the w
+        X_projected
+            Projected points using the w.
 
         Examples
         --------
 
         """
-        # Centre data before projecting
-        X = X - self.mean
-        # Project the points of X
-        X_new = X.dot(self.w)
-        return X_new
+        # Centre and project data points
+        return (X - self.mean).dot(self.w)
 
 
 class PCA:
@@ -157,12 +153,11 @@ class PCA:
         --------
 
         """
+        self.mean = np.mean(X_train, axis=0)
         St = np.cov(X_train.T, bias=1) * np.shape(X_train)[0]
         evecs = eigh(St)[1]
         evecs = np.fliplr(evecs)
         self.w = evecs[:, :reduced_dim]
-        self.mean = np.mean(X_train, axis=0)
-        return self
 
     def transform(self, X):
         """Project the points of X using
@@ -175,7 +170,7 @@ class PCA:
 
         Returns:
         ----------
-        X_proj
+        X_projected
             Projected points using the w.
 
         Examples
