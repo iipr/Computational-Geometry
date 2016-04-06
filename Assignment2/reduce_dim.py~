@@ -78,9 +78,10 @@ class LDA:
         # Compute between-class covariance matrix
         Sb = np.subtract(St, Sw)
         # Compute eigenvalues for LDA problem and sort them in a decreasing fashion
-        self.w = np.fliplr(eigh(Sb, Sw, eigvals = (D - reduced_dim, D - 1))[1])
+        evecs = eigh(Sb, Sw, eigvals = (D - reduced_dim, D - 1))[1]
         #evecs = np.fliplr(evecs)
         #self.w = evecs[:, :reduced_dim]
+        self.w = np.fliplr(evecs)
 
     def transform(self, X):
         """Project the points of X using the
