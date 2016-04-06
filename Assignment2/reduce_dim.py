@@ -26,7 +26,7 @@ class LDA:
             #Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminar poniendo su valor en la siguiente
             Sw = np.add(Sw, np.cov(X_train[y_train == Ck, :].T, bias = 1) * Nk[Ck])
             
-        Sb = np.subtract(St, Sw)        
+        Sb = np.subtract(St, Sw)  
         
         evals, evecs = eigh(Sb, Sw)
         indices = np.argsort(evals)[::-1]
