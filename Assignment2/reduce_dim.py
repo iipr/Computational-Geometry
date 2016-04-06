@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import numpy as np 
-from scipy.linalg import eigh 
+import numpy as np
+from scipy.linalg import eigh
 
 
 class LDA:
-    """Linear discriminant analysis for dimensionality reduction.
+    """Linear Discriminant Analysis for dimensionality reduction.
 
-    First, the matrix Sw , St and Sb  are computed using the set of 
-    input training points given by X_train and the y_train vector.
+    First, matrices Sw, St and Sb are computed using the set of
+    input training points given by X_train and the class vector y_train.
 
-    Using the Sw and Sb matrix we compute the projecting matrix w 
-    making large the between-class covariance and small the within-class covariance.
+    By using Sw and Sb, the projecting matrix w is computed leading to
+    a big between-class covariance and a small within-class covariance.
 
-    Afterwards, the points given by X are projected using the w matrix
-    in order to reduce the dimensionality.
+    Afterwards, the points given by X are projected using w, providing
+    a dimensionality reduction for an easier manipulation.
 
     Note
     ----
@@ -37,9 +37,12 @@ class LDA:
         Projects the data, reducing dimensionality using the w computed in fit.
 
     """
+
     def __init__(self):
         self.w = None
         self.mean = None
+
+
 
     def fit(self, X_train, y_train, reduced_dim):
         """Computes the projection matrix w for lda.
@@ -59,34 +62,30 @@ class LDA:
         """
         N = np.shape(X_train)[0]
         D = np.shape(X_train)[1]
-        
-        Sw = np.zeros((D,D))
-        St = np.cov(X_train.T, bias = 1) * N
-          
-        #Label the classes in order to loop on them
+
+        Sw = np.zeros((D, D))
+        St = np.cov(X_train.T, bias=1) * N
+
+        # Label the classes in order to loop on them
         labels = np.unique(y_train)
-        #Count the number of points on each class
+        # Count the number of points on each class
         Nk = np.bincount(y_train)
-        for Ck in labels:   
-            #Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminar poniendo su valor en la siguiente
-            Sw = np.add(Sw, np.cov(X_train[y_train == Ck, :].T, bias = 1) * Nk[Ck])
-            
-        Sb = np.subtract(St, Sw)  
-        
+        for Ck in labels:
+            # Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminars poniendo su valor en la siguiente
+            Sw = np.add(Sw, np.cov(X_train[y_train == Ck, :].T, bias=1) * Nk[Ck])
+
+        Sb = np.subtract(St, Sw)
         evals, evecs = eigh(Sb, Sw)
         indices = np.argsort(evals)[::-1]
-       
-        #indices = indices  
-        evecs = evecs[:,indices]  
-        #evals = evals[indices]  
-        evecs = evecs[:,:reduced_dim]  
-        #evecs /= np.apply_along_axis(np.linalg.norm, 0, evecs)
 
-        self.mean = np.mean(X_train, axis = 0)
+        evecs = evecs[:, indices]
+        evecs = evecs[:, :reduced_dim]
+
+        self.mean = np.mean(X_train, axis=0)
         self.w = evecs
 
     def transform(self, X):
-        """Project the points of X using the 
+        """Project the points of X using the
         w matrix calculated with fit
 
         Parameters
@@ -94,31 +93,31 @@ class LDA:
         X
             Set of points to be projected.
 
-        Returns:	
+        Returns:
         ----------
         X_new
             Array projected from X points using the w
-        
+
         Examples
         --------
 
         """
-
         # Centre data before projecting
         X = X - self.mean
-        #Project the points of X
+        # Project the points of X
         X_new = X.dot(self.w)
         return X_new
 
+
 class PCA:
-    """Principal component analysis for dimensionality reduction.
+    """Principal Component Analysis for dimensionality reduction.
 
-    First, computes the covariance matrix of the set of 
-    input training points given by X_train. Then, obtains the projection
-    matrix according to the pca method.
+    First, compute St, the covariance matrix of the set of input
+    training points given by X_train. Then, obtains the projection
+    matrix according to the PCA method.
 
-    Afterwards, the points given by X are projected using the w matrix
-    in order to reduce the dimensionality.
+    Afterwards, the points given by X are projected using w, providing
+    a dimensionality reduction for an easier manipulation.
 
     Note
     ----
@@ -133,108 +132,55 @@ class PCA:
 
     Methods
     -------
-    _covariance_matrix
-        Returns the covariance matrix St.
-    _orderedeigenvecs
-        Returns the ordered eigenvectors of a given matrix. 
     fit
-        Computes the projection matrix w of the pca method.
+        Computes the projection matrix w of the PCA method.
     transform
-        Projects the data, reducing dimensionality using the w computed in fit.
+        Projects the data, reducing dimensionality using w (computed in fit).
 
     """
+
     def __init__(self):
         self.w = None
         self.mean = None
 
-    def _covariance_matrix(self, X):
-        """Computes the coovariance 
-        matrix of the given points.
-
-        Parameters
-        ----------
-        X
-            Set of points.
-        
-        Returns:	
-        ----------
-        St
-            Covariance matrix of the X points.
-  
-        Examples
-        --------
-
-        """
-        #mean = np.mean(X, axis = 0)
-        St = np.cov(X.T, bias = 1) * np.shape(X)[0]
-        #St = (X - mean).T.dot((X - mean))# / (X.shape[0] - 1)
-        return St
-
-    def _orderedeigenvecs(self, St):
-        """Computes the eigenvectors of 
-        the given matrix and order it.
-
-        Parameters
-        ----------
-        St
-            Matrix.
-        
-        Returns:	
-        ----------
-        evecs
-            Matrix of ordered eigenvectors.
-  
-        Examples
-        --------
-
-        """
-        #evals, evecs = np.linalg.eig(St)
-        evals, evecs = eigh(St)
-        sorted_ind = np.argsort(evals)[::-1]
-        evecs = evecs[:,sorted_ind]
-        return evecs
-
     def fit(self, X_train, reduced_dim):
-        """Computes the projection matrix w for pca.
+        """Compute the projection matrix w for PCA.
 
         Parameters
         ----------
         X_train
             Set of training points.
         reduced_dim
-            Target dimension of the reduction.
+            Target dimension of the dimensionality reduction.
 
         Examples
         --------
 
         """
-        St = self._covariance_matrix(X_train)
-        evecs = self._orderedeigenvecs(St)
-        self.w = evecs[:,:reduced_dim]  
-        #self.w = np.vstack([evecs[:, i] for i in range(reduced_dim)]).T
-        self.mean = np.mean(X_train, axis = 0)
+        St = np.cov(X_train.T, bias=1) * np.shape(X_train)[0]
+        evecs = eigh(St)[1]
+        evecs = np.fliplr(evecs)
+        self.w = evecs[:, :reduced_dim]
+        self.mean = np.mean(X_train, axis=0)
         return self
 
     def transform(self, X):
-        """Project the points of X using the 
-        w matrix calculated with fit
+        """Project the points of X using
+        w matrix, calculated with fit.
 
         Parameters
         ----------
         X
             Set of points to be projected.
 
-        Returns:	
+        Returns:
         ----------
-        X_new
-            Array projected from X points using the w
-        
+        X_proj
+            Projected points using the w.
+
         Examples
         --------
 
         """
-        # Centre data
-        X = X - self.mean
-        # Project data points
-        X_new = X.dot(self.w)
-        return X_new
+        # Centre and project data points
+        return (X - self.mean).dot(self.w)
