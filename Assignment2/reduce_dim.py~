@@ -105,7 +105,7 @@ class LDA:
         """
 
         # Centre data before projecting
-        X = X - self.mean
+        X = X + self.mean
         #Project the points of X
         X_new = X.dot(self.w)
         return X_new
@@ -177,7 +177,7 @@ class PCA:
         Parameters
         ----------
         St
-            The target matrix.
+            Matrix.
         
         Returns:	
         ----------
