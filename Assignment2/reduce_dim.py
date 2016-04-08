@@ -42,6 +42,7 @@ class LDA:
         self.w = None
         self.mean = None
 
+
     def fit(self, X_train, y_train, reduced_dim):
         """Compute w, the projection matrix for LDA.
 
@@ -91,6 +92,7 @@ class LDA:
         Sb = np.subtract(St, Sw)
         # Compute eigenvalues for LDA problem and sort them in a decreasing fashion
         self.w = np.fliplr(eigh(Sb, Sw, eigvals = (D - reduced_dim, D - 1))[1])
+
 
     def transform(self, X):
         """Project the points of X using w, which was calculated with fit.
@@ -161,6 +163,7 @@ class PCA:
         self.w = None
         self.mean = None
 
+
     def fit(self, X_train, reduced_dim):
         """Compute w, the projection matrix for PCA.
 
@@ -207,6 +210,7 @@ class PCA:
         St = np.cov(X_train.T, bias=1) * np.shape(X_train)[0]
         # Compute eigenvalues for PCA problem and sort them in a decreasing fashion
         self.w = np.fliplr(eigh(St, eigvals = (D - reduced_dim, D - 1))[1])
+
 
     def transform(self, X):
         """Project the points of X using w, which was calculated with fit.
