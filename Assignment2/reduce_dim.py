@@ -85,15 +85,12 @@ class LDA:
         # Count the number of points on each class
         Nk = np.bincount(y_train)
         for Ck in labels:
-            #Xk = X_train[y_train == Ck, :] #<-- Esta linea se podria eliminars poniendo su valor en la siguiente
             Sw = np.add(Sw, np.cov(X_train[y_train == Ck, :].T, bias=1) * Nk[Ck])
 
         # Compute between-class covariance matrix
         Sb = np.subtract(St, Sw)
         # Compute eigenvalues for LDA problem and sort them in a decreasing fashion
         self.w = np.fliplr(eigh(Sb, Sw, eigvals = (D - reduced_dim, D - 1))[1])
-        #evecs = np.fliplr(evecs)
-        #self.w = evecs[:, :reduced_dim]
 
     def transform(self, X):
         """Project the points of X using w, which was calculated with fit.
@@ -209,9 +206,6 @@ class PCA:
         St = np.cov(X_train.T, bias=1) * np.shape(X_train)[0]
         # Compute eigenvalues for PCA problem and sort them in a decreasing fashion
         self.w = np.fliplr(eigh(St, eigvals = (D - reduced_dim, D - 1))[1])
-        #evecs = eigh(St)[1]
-        #evecs = np.fliplr(evecs)
-        #self.w = evecs[:, :reduced_dim]
 
     def transform(self, X):
         """Project the points of X using w, which was calculated with fit.
