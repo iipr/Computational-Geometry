@@ -202,6 +202,7 @@ class PCA:
         D = np.shape(X_train)[1]
         # Compute and save the vectorial mean for latter purposes
         self.mean = np.mean(X_train, axis=0)
+
         # Compute the covariance matrix of X_train
         St = np.cov(X_train.T, bias=1) * np.shape(X_train)[0]
         # Compute eigenvalues for PCA problem and sort them in a decreasing fashion
