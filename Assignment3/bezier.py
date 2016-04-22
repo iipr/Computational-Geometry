@@ -3,11 +3,18 @@
 from __future__ import division
 import numpy as np
 
-def polyeval_bezier(P, num_points, method):
+BINOMIAL_DICT = dict()
+RECURSIVE_BERNSTEIN_DICT = dict()
+
+def polyeval_bezier(P, num_points, algorithm):
     '''
     P np.array de dimensión (num_points, dim).
     num_points el numero de puntos en que se divide el intervalo [0, 1].
-    method (será sustituido por algorith ha dicho) es 'direct', 'recursive', 'horner' o 'deCasteljau'.
+    algorithm es:
+       'direct' -> evaluación directa de los polinomios de Bernstein
+       'recursive' -> los polinomios de Bernstein se calculen usando la fórmula recursiva que los caracteriza 
+       'horner' ->  Horner para evaluar, dividiendo los valores en los menores que 0.5 y los mayores o iguales a 0.5
+       'deCasteljau' -> algoritmo de De Casteljau
     
     Devolverá un np.array de dimensión (num_points, dim) con los valores de la curva de Bézier en los 
     instantes dados por num_points valores equiespaciados en [0, 1].
