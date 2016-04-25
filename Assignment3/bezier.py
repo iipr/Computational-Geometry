@@ -55,19 +55,26 @@ def deCasteljau(k, i, cp, t):
     return deCasteljau(k - 1, i, cp, t) * t + deCasteljau(k - 1, i + 1, cp, t) * (1 - t)
     
 def horner(n, P, t_array): 
+    #Partimos en dos partes: >1/2 y <1/2
     t_1, t_2 = np.split(t_array,2)
+    
+    #Calculamos array de numeros combinatorios
     combarray = np.zeros(n+1)
     for i in range (n+1):
         combarray[i] = binom(n,i)
-    print(P)
-    print(combarray)
-    coeffs_1 = P*combarray
-    horner_1 = np.polyval(coeffs_1, t_1/1-t_1)*((1-t_1)**n)
-    coeffs_2 = P[::-1]*combarray
-    horner_2 = np.polyval(coeffs_2, 1 -t_2/t_2)*(t_2**n)
     
-    return np.concatenate((horner_1, horner_2))
-
+    #Calculamos los coeficientes para el método de Horner
+    coeffs_1 = P.T*combarray.T
+    
+    #Aplicamos Horner y multiplicamos por (1-t)^n
+    horner_11 = np.polyval(coeffs_1[:, 0], t_1/(1-t_1))*((1-t_1)**n)
+    horner_12 = np.polyval(coeffs_1[:, 1], t_1/(1-t_1))*((1-t_1)**n)
+    coeffs_2 = P[::-1].T*combarray.T
+    horner_21 = np.polyval(coeffs_2[:, 0], (1-t_2)/t_2)*(t_2**n)
+    horner_22 = np.polyval(coeffs_2[:, 1], (1-t_2)/t_2)*(t_2**n)
+    
+    return np.asarray([np.concatenate((horner_11, horner_21)), np.concatenate((horner_12, horner_22))])
+    
 def polyeval_bezier(P, num_points, algorithm):
     t_array = np.linspace(0, 1, num_points)
     if (algorithm == 'direct'):
