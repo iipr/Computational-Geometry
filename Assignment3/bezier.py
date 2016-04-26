@@ -6,26 +6,11 @@ import numpy as np
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
 
-
+#Para pruebas en el main:
 from mpl_toolkits.mplot3d import Axes3D
-#%matplotlib inline
 import matplotlib.pyplot as plt
-
 import time
 
-#def polyeval_bezier(P, num_points, algorithm):
-'''
-    P np.array de dimensión (num_points, dim).
-    num_points el numero de puntos en que se divide el intervalo [0, 1].
-    algorithm es:
-       'direct' -> evaluación directa de los polinomios de Bernstein
-       'recursive' -> los polinomios de Bernstein se calculen usando la fórmula recursiva que los caracteriza 
-       'horner' ->  Horner para evaluar, dividiendo los valores en los menores que 0.5 y los mayores o iguales a 0.5
-       'deCasteljau' -> algoritmo de De Casteljau
-
-    Devolverá un np.array de dimensión (num_points, dim) con los valores de la curva de Bézier en los 
-    instantes dados por num_points valores equiespaciados en [0, 1].
-    '''
 
 def comb(m, n):
     if(not((m, n) in BINOMIAL_DICT)):
@@ -77,23 +62,36 @@ def horner(n, cp, t_array):
     return np.concatenate([horner_1, horner_2])
 
 def polyeval_bezier(P, num_points, algorithm):
+    # Numero de puntos de P = n+1:
     n = np.size(P, 0) - 1
+    # Dimension de los puntos
     dim = np.size(P, 1)
     t_array = np.linspace(0, 1, num_points)
+    P_axis = np.asarray([P[:, i] for i in range(dim)])
+
     if(algorithm == 'direct'):
         bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))]))
         return bezier
+
     elif(algorithm == 'recursive'):
         bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * bernstein_rec(n, k, t_array) for k in range(n+1))]))
         return bezier
+
     elif(algorithm == 'horner'):
-        return horner(n, P, t_array)
+        bezier = [horner(n, P_axis[0, :], t_array)]
+        for i in range(1, dim):
+            bezier = np.concatenate((bezier, [horner(n, P_axis[i, :], t_array)]))
+        return bezier
+
     elif(algorithm == 'deCasteljau'):
-        return deCasteljau(n, 0, P, t_array)
+        bezier = [deCasteljau(n, 0, P_axis[0, :], t_array)]
+        for i in range(1, dim):
+            bezier = np.concatenate((bezier, [deCasteljau(n, 0, P_axis[i, :], t_array)]))
+        return bezier
 
 def bezier_subdivision_recursive(P, k, epsilon, lines):
     #Calcular max (viene en los apuntes)
@@ -141,18 +139,18 @@ if __name__ == '__main__':
     num_points = 100
     dim = np.size(P, 1)
     n = np.size(P, 0) - 1
-    algorithm = 'recursive'
-    plt.title('Recursivo: Prueba 3D')
+    algorithm = 'deCasteljau'
+    plt.title('De Casteljau: Prueba 3D')
     start = time.time()
     result = polyeval_bezier(P, num_points, algorithm)
 #    print result
 #    print np.size(result)
     ax.plot(result[0, :], result[1, :], result[2, :])
-    P_x = np.asarray([P[i][0] for i in range(n+1)])
-    P_y = np.asarray([P[i][1] for i in range(n+1)])
-    P_z = np.asarray([P[i][2] for i in range(n+1)])
+    P_x = P[:, 0]
+    P_y = P[:, 1]
+    P_z = P[:, 2]
     ax.plot(P_x, P_y, P_z, 'ro')
     ax.plot(P_x, P_y, P_z, 'g')
-    plt.show()
     end = time.time()
+    plt.show()
     print(end - start)
