@@ -61,19 +61,19 @@ def horner(n, P, t_array):
     #Calculamos array de numeros combinatorios
     combarray = np.zeros(n+1)
     for i in range (n+1):
-        combarray[i] = binom(n,i)
+        combarray[i] = comb(n,i)
+        #combarray[i] = combarray[i]*P[i]
     
     #Calculamos los coeficientes para el método de Horner
     coeffs_1 = P.T*combarray.T
     
     #Aplicamos Horner y multiplicamos por (1-t)^n
-    horner_11 = np.polyval(coeffs_1[:, 0], t_1/(1-t_1))*((1-t_1)**n)
-    horner_12 = np.polyval(coeffs_1[:, 1], t_1/(1-t_1))*((1-t_1)**n)
+    horner_11 = np.polyval(coeffs_1, t_1/(1-t_1))*((1-t_1)**n)
     coeffs_2 = P[::-1].T*combarray.T
-    horner_21 = np.polyval(coeffs_2[:, 0], (1-t_2)/t_2)*(t_2**n)
-    horner_22 = np.polyval(coeffs_2[:, 1], (1-t_2)/t_2)*(t_2**n)
+    horner_21 = np.polyval(coeffs_2, (1-t_2)/t_2)*(t_2**n)
     
-    return np.asarray([np.concatenate((horner_11, horner_21)), np.concatenate((horner_12, horner_22))])
+    return np.append(horner_11, horner_21)
+    
     
 def polyeval_bezier(P, num_points, algorithm):
     t_array = np.linspace(0, 1, num_points)
@@ -82,10 +82,30 @@ def polyeval_bezier(P, num_points, algorithm):
     else if (algorithm == 'recursive'):
         bernstein_rec(n, k, t_array)
     else if (algorithm == 'horner'):
-        pass
+        return horner(num_points, P, t_array)
     else if (algorithm == 'deCasteljau'):
         return deCasteljau(k, i, P, t_array)
 
+		
+		
+def bezier_subdivision_recursive(P, k, epsilon, lines): 
+    #Calcular max (viene en los apuntes)
+    if(k==0 or max < epsilon):
+        if(lines):
+			#solo los extremos
+            pass
+        else:
+            pass
+        #dibujar b
+    else:
+        #Calcular a0,...,a2n sobre [0, 0.5, 1]
+		#Calc a0,...,an
+        a_1 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
+        #Calc an,...,a2n
+		a_2 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
+        return a_1,a_2
+		
+		
 def bezier_subdivision(P, k, epsilon, lines=False):
     '''
     Metodo de subdivision. 
