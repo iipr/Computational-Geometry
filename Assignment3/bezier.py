@@ -81,6 +81,23 @@ def polyeval_bezier(P, num_points, algorithm):
     elif(algorithm == 'deCasteljau'):
         return deCasteljau(n, 0, P, t_array)
 
+def bezier_subdivision_recursive(P, k, epsilon, lines): 
+    #Calcular max (viene en los apuntes)
+    if(k==0 or max < epsilon):
+        if(lines):
+			#solo los extremos
+            pass
+        else:
+            pass
+        #dibujar b
+    else:
+        #Calcular a0,...,a2n sobre [0, 0.5, 1]
+		#Calc a0,...,an
+        a_1 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
+        #Calc an,...,a2n
+        a_2 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
+        return a_1,a_2
+
 def bezier_subdivision(P, k, epsilon, lines=False):
     '''
     Metodo de subdivision.
