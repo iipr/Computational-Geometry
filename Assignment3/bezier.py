@@ -6,6 +6,13 @@ import numpy as np
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
 
+
+from mpl_toolkits.mplot3d import Axes3D
+#%matplotlib inline
+import matplotlib.pyplot as plt
+
+import time
+
 #def polyeval_bezier(P, num_points, algorithm):
 '''
     P np.array de dimensión (num_points, dim).
@@ -70,18 +77,25 @@ def horner(n, cp, t_array):
     return np.concatenate([horner_1, horner_2])
 
 def polyeval_bezier(P, num_points, algorithm):
-    n = P.size
+    n = np.size(P, 0) - 1
+    dim = np.size(P, 1)
     t_array = np.linspace(0, 1, num_points)
     if(algorithm == 'direct'):
-        return np.sum(P[k] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))
+        bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
+        for i in range(1, dim):
+            bezier = np.concatenate((bezier, [np.sum(P[k][i] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))]))
+        return bezier
     elif(algorithm == 'recursive'):
-        return np.sum(P[k] * bernstein_rec(n, k, t_array) for k in range(n+1))
+        bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
+        for i in range(1, dim):
+            bezier = np.concatenate((bezier, [np.sum(P[k][i] * bernstein_rec(n, k, t_array) for k in range(n+1))]))
+        return bezier
     elif(algorithm == 'horner'):
         return horner(n, P, t_array)
     elif(algorithm == 'deCasteljau'):
         return deCasteljau(n, 0, P, t_array)
 
-def bezier_subdivision_recursive(P, k, epsilon, lines): 
+def bezier_subdivision_recursive(P, k, epsilon, lines):
     #Calcular max (viene en los apuntes)
     if(k==0 or max < epsilon):
         if(lines):
@@ -117,3 +131,28 @@ def backward_differences_bezier(P, m, h=None):
     Evaluará la curva de Bézier en los puntos de la forma h*k para k=0,...,m. Si h=None entonces h=1/m.
     '''
     pass
+
+
+if __name__ == '__main__':
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    P = np.asarray([[0.1, .8, 1], [1, .2, .5], [0, .1, .4], [.3, .9, .7]])
+    num_points = 100
+    dim = np.size(P, 1)
+    n = np.size(P, 0) - 1
+    algorithm = 'recursive'
+    plt.title('Recursivo: Prueba 3D')
+    start = time.time()
+    result = polyeval_bezier(P, num_points, algorithm)
+#    print result
+#    print np.size(result)
+    ax.plot(result[0, :], result[1, :], result[2, :])
+    P_x = np.asarray([P[i][0] for i in range(n+1)])
+    P_y = np.asarray([P[i][1] for i in range(n+1)])
+    P_z = np.asarray([P[i][2] for i in range(n+1)])
+    ax.plot(P_x, P_y, P_z, 'ro')
+    ax.plot(P_x, P_y, P_z, 'g')
+    plt.show()
+    end = time.time()
+    print(end - start)
