@@ -1,5 +1,9 @@
-#http://problem-g.estad.ucm.es/FLOP/http//compiler?problemName=GeometriaComputacional/bezier
+"""Linear Classifation module
 
+This module provides methods for obtaining Bezier curves 
+
+
+"""
 from __future__ import division
 import numpy as np
 
@@ -56,14 +60,26 @@ def horner(n, cp, t_array):
     return np.concatenate([horner_1, horner_2])
 
 def polyeval_bezier(P, num_points, algorithm):
-    P = np.asarray(P)
-    # Numero de puntos de P = n+1:
+	"""
+	This function returns an array with the values of Bezier's curve evaluated
+	in the points given by the parameter 'numpoints'
+	
+	The option 'direct' will force a direct evaluation of Bernstein's polynomials,
+	'recursive' will calculate Bernstein's polynomials using its recursive formulae,
+	'horner' will use Horner's method in the evaluation of these polynomials, and finally 
+	'deCasteljau' will evaluate the curve using De Casteljau's Algorithm.
+
+	Example
+	-------
+	P = [[-39, -71, -54], [82, -39, 1], [-14, -89, -61], [-50, 25, -78], [26, 40, 51], [-43, -81, 78]
+	polyeval_bezier(P, 100, 'horner')
+	Q = [[0.1, .8], [1,.2], [0,.1], [.3,.9]]
+	polyeval_bezier(Q, 50, 'direct')
+	"""
     n = np.size(P, 0) - 1
-    # Dimension de los puntos
     dim = np.size(P, 1)
     t_array = np.linspace(0, 1, num_points)
     P_axis = np.asarray([P[:, i] for i in range(dim)])
-
     if(algorithm == 'direct'):
         bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
         for i in range(1, dim):
@@ -90,19 +106,41 @@ def polyeval_bezier(P, num_points, algorithm):
 
 
 def bezier_subdivision(P, k, epsilon, lines): 
+	"""
+	This function implements subdivision's method
+	Integer parameter k indicates the number of subdivision, and epsilon
+	is the stop threshold, which measures how close to a straight line is the curve.
+		
+	The function will return an array containing the sequence of points given by the resulting 
+	Bezier polygons. 
+	
+	If lines = True, it will only return the succesion of exterms, wih no intermediate points.
+	
+	Example
+	-------
+	num_points = 100
+	epsilon = 0.01
+	k = 10
+	P = [[21, -17, -27], [92, -46, -36], [-14, -66, -75], [72, -41, -89], [49, -37, 83], [-48, 63, 66], [-94, -51, 71]]
+	result = bezier_subdivision(np.array(P), k, epsilon, True)
+	
+	"""
     P = np.array(P)
-    #calcular max
     n = np.shape(P)[0]
-    delta2_b = np.diff(P, n=2, axis=0)
+    #Stop threshold calculation
+	delta2_b = np.diff(P, n=2, axis=0)
     threshold = np.max(np.linalg.norm(delta2_b, axis=1))
 
+	
     if lines and n*(n - 1) / 8 * threshold < epsilon:
         return np.array([P[0], P[-1]])
 
     if k==0 or threshold < epsilon:
         return P
 
+	#Division of the problem in two subproblems
     P_1, P_2 = deCasteljau_2(P)
+	#We have to eliminate the last point, as it is duplicated in both arrays
     a_1 = bezier_subdivision(P_1, k-1, epsilon, lines)[:-1, :]
     a_2 = bezier_subdivision(P_2, k-1, epsilon, lines)
     return np.vstack((a_1, a_2))
@@ -125,35 +163,46 @@ def deCasteljau_2(P):
 	
 	
 def backward_differences_bezier(P, m, h=None):
-    '''
-    Método de diferencias "hacia atrás".
+    """
+	This function will evaluate Bezier's curve at points of the form h * k for k = 0, ..., m.
+	If h = None then h = 1/m. 
+	The function uses the method of backward differences explained in class.
+	
+	Example
+	-------
+	num_points = 100
+	h = 0.05
+	m = 100
+	P = [[-90, 29, 51], [-32, 80, -15], [-50, -40, -91], [-35, 93, 68], [-58, -97, 21]]
+	result = backward_differences_bezier(P, k, epsilon, True)
+	
+	"""
 
-    Evaluará la curva de Bézier en los puntos de la forma h*k para k=0,...,m. Si h=None entonces h=1/m.
-    '''
     if h == None:
         h = 1/m
     n = np.shape(P)[0]-1
     d = np.shape(P)[1]
 
-    #Necesitaremos una matriz 'mxnxd' con n grado de la curva
+    #Empty matrix, where n is the degree of the curve
     points = np.zeros((m+1, n+1, d))
     
-    #Calculo del triangulo inicial
     t_array = np.arange(0, (n + 1)*h, h)
-
+	
+	#Initialize the leftmost points
     points[:(n+1),0] = horner(P, t_array)
   
-    #Diferencias hacia delante
+    #Forward differences
     for i in range (1,n+1):
         for j in range (1,i+1):
             points[i, j] = points[i, j-1] - points[i-1, j-1]
-    #Completamos la columna constante
+			
+    #Complete constant column
     points[(n+1):, n] = points[n,n]
     
-    #Calculo final
+    #Final calculus
     for i in range(n+1, m+1):
         for j in range(n-1, -1, -1):
             points[i,j] = points[i, j+1] + points[i-1, j]
     
-    #Devolvemos los p0...pM puntos, que estan en la primera columna
+    #Return the points in the first column
     return points[:,0]
