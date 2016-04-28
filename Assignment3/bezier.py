@@ -67,13 +67,13 @@ def polyeval_bezier(P, num_points, algorithm):
         bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))]))
-        return bezier
+        return bezier.T
 
     elif(algorithm == 'recursive'):
         bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * bernstein_rec(n, k, t_array) for k in range(n+1))]))
-        return bezier
+        return bezier.T
 
     elif(algorithm == 'horner'):
         bezier = [horner(n, P_axis[0, :], t_array)]
@@ -124,9 +124,30 @@ def deCasteljau_2(P):
 	
 	
 def backward_differences_bezier(P, m, h=None):
-    '''
-    Método de diferencias "hacia atrás".
+    if h == None:
+        h = 1/m
+    n = np.shape(P)[0]-1
+    d = np.shape(P)[1]
 
-    Evaluará la curva de Bézier en los puntos de la forma h*k para k=0,...,m. Si h=None entonces h=1/m.
-    '''
-    pass
+    #Necesitaremos una matriz 'mxnxd' con n grado de la curva
+    points = np.zeros((m+1, n+1, d))
+    
+    #Calculo del triangulo inicial
+    t_array = np.linspace(0, n*h, n+1)
+
+    points[:(n+1),0] = horner_eval_bezier(P, t_array)
+  
+    #Diferencias hacia delante
+    for i in range (1,n+1):
+        for j in range (1,i+1):
+            points[i, j] = points[i, j-1] - points[i-1, j-1]
+    #Completamos la columna constante
+    points[(n+1):, n] = points[n,n]
+    
+    #Calculo final
+    for i in range(n+1, m+1):
+        for j in range(n-1, -1, -1):
+            points[i,j] = points[i, j+1] + points[i-1, j]
+    
+    #Devolvemos los p0...pM puntos, que estan en la primera columna
+    return points[:,0]
