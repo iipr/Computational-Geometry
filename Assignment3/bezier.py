@@ -10,6 +10,7 @@ from __future__ import division
 import numpy as np
 
 
+
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
 
@@ -41,6 +42,10 @@ def bernstein_rec(n, k, t):
     else:
         RECURSIVE_BERNSTEIN_DICT[(n, k)] = t * bernstein_rec(n - 1, k - 1, t) + (1 - t) * bernstein_rec(n - 1, k, t)
         return RECURSIVE_BERNSTEIN_DICT.get((n, k))
+
+def direct(cPoints, t_array):    
+    n = np.size(cPoints, 0) - 1
+    return np.sum(np.outer(cPoints[i].T, comb_2(n, i) * t_array ** i * (1 - t_array) ** (n - i)) for i in range(n + 1)).T
 
 def deCasteljau(k, i, cp, t):
     if(k == 0):
@@ -86,10 +91,7 @@ def polyeval_bezier(P, num_points, algorithm):
     t_array = np.linspace(0, 1, num_points)
     P_axis = np.asarray([P[:, i] for i in range(dim)])
     if(algorithm == 'direct'):
-        bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
-        for i in range(1, dim):
-            bezier = np.concatenate((bezier, [np.sum(P[k][i] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))]))
-        return bezier.T
+        return direct(P, t_array)
 
     elif(algorithm == 'recursive'):
         bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
