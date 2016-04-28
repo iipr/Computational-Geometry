@@ -9,6 +9,7 @@ This module provides methods for obtaining Bezier curves
 from __future__ import division
 import numpy as np
 
+
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
 
@@ -46,20 +47,22 @@ def deCasteljau(k, i, cp, t):
         return cp[i]
     return deCasteljau(k - 1, i, cp, t) * t + deCasteljau(k - 1, i + 1, cp, t) * (1 - t)
 
-def horner(n, cp, t_array):
+def horner(cPoints, t_array):
+    n, dim = cPoints.shape - np.array([1, 0])
     #Partimos en dos partes: <1/2 y >1/2
-    t_1, t_2 = np.split(t_array,2)
+    t_1, t_2 = np.split(t_array, 2)
 
     #Calculamos los coeficientes para el método de Horner cuando t<1/2
-    coeffs_1 = [comb_2(n, i) * cp[i] for i in range(n+1)]
+    coeffs_1 = np.asarray([comb_2(n, i) * cPoints[n - i, :] for i in range(n + 1)])
     #Aplicamos Horner y multiplicamos por (1-t)^n
-    horner_1 = np.polyval(coeffs_1, t_1 / (1 - t_1)) * (1 - t_1)**n
-    #Calculamos los coeficientes para el método de Horner cuando t>1/2
-    coeffs_2 = [comb_2(n, i) * cp[::-1][i] for i in range(n+1)]
-    #Aplicamos Horner y multiplicamos por t^n
-    horner_2 = np.polyval(coeffs_2, (1 - t_2) / t_2) * t_2**n
+    horner_1 = [np.polyval(coeffs_1[:, j], t_1 / (1 - t_1)) * (1 - t_1)**n for j in range(dim)]
 
-    return np.concatenate([horner_1, horner_2])
+    #Calculamos los coeficientes para el método de Horner cuando t>1/2
+    coeffs_2 = np.asarray([comb_2(n, i) * cPoints[i, :] for i in range(n+1)])
+    #Aplicamos Horner y multiplicamos por t^n
+    horner_2 = [np.polyval(coeffs_2[:, j], (1 - t_2) / t_2) * t_2**n for j in range(dim)]
+
+    return np.hstack((horner_1, horner_2)).T
 
 def polyeval_bezier(P, num_points, algorithm):
     """
@@ -95,10 +98,7 @@ def polyeval_bezier(P, num_points, algorithm):
         return bezier.T
 
     elif(algorithm == 'horner'):
-        bezier = [horner(n, P_axis[0, :], t_array)]
-        for i in range(1, dim):
-            bezier = np.concatenate((bezier, [horner(n, P_axis[i, :], t_array)]))
-        return bezier.T[::-1]
+        return horner(P, t_array)
 
     elif(algorithm == 'deCasteljau'):
         bezier = [deCasteljau(n, 0, P_axis[0, :], t_array)]
@@ -161,27 +161,7 @@ def deCasteljau_2(P):
             if (i == j):
                 b_diag[j] = bij[i,j]
     return b_diag, bij[:,n][::-1]
-	
-def horner_eval_bezier(P, t):
 
-    '''Horner's multidimensional function by Valdes'''
-
-    N = t.shape[0]
-    n, dim = P.shape - np.array([1, 0])
-    N0 = int(N / 2)
-    t0 = t[:N0]
-    t1 = t[N0:]
-
-    factor0 = np.array([comb_2(n, k) * P[n - k, :] for k in range(n + 1)])
-    factor1 = np.array([comb_2(n, k) * P[k, :] for k in range(n + 1)])
-
-    onemt0 = 1 - t0
-    onemt1 = 1 - t1
-
-    eval_bezier0 = np.array([onemt0**n * np.polyval(factor0[:, d], t0 / onemt0) for d in range(dim)])
-    eval_bezier1 = np.array([t1**n * np.polyval(factor1[:, d], onemt1 / t1) for d in range(dim)])
-
-    return np.hstack((eval_bezier0, eval_bezier1)).T
 	
 def backward_differences_bezier(P, m, h=None):
     """
@@ -210,7 +190,7 @@ def backward_differences_bezier(P, m, h=None):
     #Calculo del triangulo inicial
     t_array = np.arange(0, (n + 1)*h, h)
 
-    points[:(n+1),0] = horner_eval_bezier(P, t_array)
+    points[:(n+1),0] = horner(P, t_array)
  
     #Diferencias hacia delante
     for i in range (1,n+1):
@@ -226,4 +206,3 @@ def backward_differences_bezier(P, m, h=None):
     
     #Devolvemos los p0...pM puntos, que estan en la primera columna
     return points[:,0]
- 
