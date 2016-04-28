@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Linear Classifation module
 
 This module provides methods for obtaining Bezier curves 
@@ -160,6 +162,26 @@ def deCasteljau_2(P):
                 b_diag[j] = bij[i,j]
     return b_diag, bij[:,n][::-1]
 	
+def horner_eval_bezier(P, t):
+
+    '''Horner's multidimensional function by Valdes'''
+
+    N = t.shape[0]
+    n, dim = P.shape - np.array([1, 0])
+    N0 = int(N / 2)
+    t0 = t[:N0]
+    t1 = t[N0:]
+
+    factor0 = np.array([comb_2(n, k) * P[n - k, :] for k in range(n + 1)])
+    factor1 = np.array([comb_2(n, k) * P[k, :] for k in range(n + 1)])
+
+    onemt0 = 1 - t0
+    onemt1 = 1 - t1
+
+    eval_bezier0 = np.array([onemt0**n * np.polyval(factor0[:, d], t0 / onemt0) for d in range(dim)])
+    eval_bezier1 = np.array([t1**n * np.polyval(factor1[:, d], onemt1 / t1) for d in range(dim)])
+
+    return np.hstack((eval_bezier0, eval_bezier1)).T
 	
 def backward_differences_bezier(P, m, h=None):
     """
@@ -182,26 +204,26 @@ def backward_differences_bezier(P, m, h=None):
     n = np.shape(P)[0]-1
     d = np.shape(P)[1]
 
-    #Empty matrix, where n is the degree of the curve
+    #Necesitaremos una matriz 'mxnxd' con n grado de la curva
     points = np.zeros((m+1, n+1, d))
     
+    #Calculo del triangulo inicial
     t_array = np.arange(0, (n + 1)*h, h)
-	
-	#Initialize the leftmost points
-    points[:(n+1),0] = horner(P, t_array)
-  
-    #Forward differences
+
+    points[:(n+1),0] = horner_eval_bezier(P, t_array)
+ 
+    #Diferencias hacia delante
     for i in range (1,n+1):
         for j in range (1,i+1):
             points[i, j] = points[i, j-1] - points[i-1, j-1]
-			
-    #Complete constant column
+    #Completamos la columna constante
     points[(n+1):, n] = points[n,n]
     
-    #Final calculus
+    #Calculo final
     for i in range(n+1, m+1):
         for j in range(n-1, -1, -1):
             points[i,j] = points[i, j+1] + points[i-1, j]
     
-    #Return the points in the first column
+    #Devolvemos los p0...pM puntos, que estan en la primera columna
     return points[:,0]
+ 
