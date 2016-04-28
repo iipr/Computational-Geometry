@@ -60,21 +60,21 @@ def horner(n, cp, t_array):
     return np.concatenate([horner_1, horner_2])
 
 def polyeval_bezier(P, num_points, algorithm):
-	"""
-	This function returns an array with the values of Bezier's curve evaluated
-	in the points given by the parameter 'numpoints'
-	
-	The option 'direct' will force a direct evaluation of Bernstein's polynomials,
-	'recursive' will calculate Bernstein's polynomials using its recursive formulae,
-	'horner' will use Horner's method in the evaluation of these polynomials, and finally 
-	'deCasteljau' will evaluate the curve using De Casteljau's Algorithm.
+    """
+    This function returns an array with the values of Bezier's curve evaluated
+    in the points given by the parameter 'numpoints'
 
-	Example
-	-------
-	P = [[-39, -71, -54], [82, -39, 1], [-14, -89, -61], [-50, 25, -78], [26, 40, 51], [-43, -81, 78]
-	polyeval_bezier(P, 100, 'horner')
-	Q = [[0.1, .8], [1,.2], [0,.1], [.3,.9]]
-	polyeval_bezier(Q, 50, 'direct')
+    The option 'direct' will force a direct evaluation of Bernstein's polynomials,
+    'recursive' will calculate Bernstein's polynomials using its recursive formulae,
+    'horner' will use Horner's method in the evaluation of these polynomials, and finally 
+    'deCasteljau' will evaluate the curve using De Casteljau's Algorithm.
+
+    Example
+    -------
+    P = [[-39, -71, -54], [82, -39, 1], [-14, -89, -61], [-50, 25, -78], [26, 40, 51], [-43, -81, 78]
+    polyeval_bezier(P, 100, 'horner')
+    Q = [[0.1, .8], [1,.2], [0,.1], [.3,.9]]
+    polyeval_bezier(Q, 50, 'direct')
 	"""
     n = np.size(P, 0) - 1
     dim = np.size(P, 1)
@@ -106,32 +106,31 @@ def polyeval_bezier(P, num_points, algorithm):
 
 
 def bezier_subdivision(P, k, epsilon, lines): 
-	"""
-	This function implements subdivision's method
-	Integer parameter k indicates the number of subdivision, and epsilon
-	is the stop threshold, which measures how close to a straight line is the curve.
-		
-	The function will return an array containing the sequence of points given by the resulting 
-	Bezier polygons. 
-	
-	If lines = True, it will only return the succesion of exterms, wih no intermediate points.
-	
-	Example
-	-------
-	num_points = 100
-	epsilon = 0.01
-	k = 10
-	P = [[21, -17, -27], [92, -46, -36], [-14, -66, -75], [72, -41, -89], [49, -37, 83], [-48, 63, 66], [-94, -51, 71]]
-	result = bezier_subdivision(np.array(P), k, epsilon, True)
-	
-	"""
+    """
+    This function implements subdivision's method
+    Integer parameter k indicates the number of subdivision, and epsilon
+    is the stop threshold, which measures how close to a straight line is the curve.
+
+    The function will return an array containing the sequence of points given by the resulting 
+    Bezier polygons. 
+
+    If lines = True, it will only return the succesion of exterms, wih no intermediate points.
+
+    Example
+    -------
+    num_points = 100
+    epsilon = 0.01
+    k = 10
+    P = [[21, -17, -27], [92, -46, -36], [-14, -66, -75], [72, -41, -89], [49, -37, 83], [-48, 63, 66], [-94, -51, 71]]
+    result = bezier_subdivision(np.array(P), k, epsilon, True)
+
+    """
     P = np.array(P)
     n = np.shape(P)[0]
     #Stop threshold calculation
-	delta2_b = np.diff(P, n=2, axis=0)
+    delta2_b = np.diff(P, n=2, axis=0)
     threshold = np.max(np.linalg.norm(delta2_b, axis=1))
-
-	
+    
     if lines and n*(n - 1) / 8 * threshold < epsilon:
         return np.array([P[0], P[-1]])
 
@@ -164,19 +163,19 @@ def deCasteljau_2(P):
 	
 def backward_differences_bezier(P, m, h=None):
     """
-	This function will evaluate Bezier's curve at points of the form h * k for k = 0, ..., m.
-	If h = None then h = 1/m. 
-	The function uses the method of backward differences explained in class.
-	
-	Example
-	-------
-	num_points = 100
-	h = 0.05
-	m = 100
-	P = [[-90, 29, 51], [-32, 80, -15], [-50, -40, -91], [-35, 93, 68], [-58, -97, 21]]
-	result = backward_differences_bezier(P, k, epsilon, True)
-	
-	"""
+    This function will evaluate Bezier's curve at points of the form h * k for k = 0, ..., m.
+    If h = None then h = 1/m. 
+    The function uses the method of backward differences explained in class.
+
+    Example
+    -------
+    num_points = 100
+    h = 0.05
+    m = 100
+    P = [[-90, 29, 51], [-32, 80, -15], [-50, -40, -91], [-35, 93, 68], [-58, -97, 21]]
+    result = backward_differences_bezier(P, k, epsilon, True)
+    
+    """
 
     if h == None:
         h = 1/m
