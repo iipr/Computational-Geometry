@@ -6,12 +6,6 @@ import numpy as np
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
 
-#Para pruebas en el main:
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-import time
-
-
 def comb(m, n):
     if(not((m, n) in BINOMIAL_DICT)):
         BINOMIAL_DICT[(m, n)] = np.math.factorial(m) // (np.math.factorial(n) * np.math.factorial(m - n))
@@ -93,35 +87,42 @@ def polyeval_bezier(P, num_points, algorithm):
             bezier = np.concatenate((bezier, [deCasteljau(n, 0, P_axis[i, :], t_array)]))
         return bezier
 
-def bezier_subdivision_recursive(P, k, epsilon, lines):
-    #Calcular max (viene en los apuntes)
-    if(k==0 or max < epsilon):
-        if(lines):
-			#solo los extremos
-            pass
-        else:
-            pass
-        #dibujar b
-    else:
-        #Calcular a0,...,a2n sobre [0, 0.5, 1]
-		#Calc a0,...,an
-        a_1 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
-        #Calc an,...,a2n
-        a_2 = bezier_subdivision_recursive(P, k-1, epsilon, lines)
-        return a_1,a_2
 
-def bezier_subdivision(P, k, epsilon, lines=False):
-    '''
-    Metodo de subdivision.
+def bezier_subdivision(P, k, epsilon, lines): 
+    P = np.array(P)
+    #calcular max
+    n = np.shape(P)[0]
+    delta2_b = np.diff(P, n=2, axis=0)
+    threshold = np.max(np.linalg.norm(delta2_b, axis=1))
 
-    P np.array de dimensión (num_points, dim).
-    El entero k indicará el número de subdivisiones.
-    Epsilon será el umbral de parada, que mide cuán cercana a una recta está la curva.
-    Si lines=True, devolverá sólo la sucesión de extremos, sin puntos intermedios.
-    Devolverá un np.array que contendrá la sucesión de puntos dada por los polígonos de Bézier resultantes.
-    '''
-    pass
+    if lines and n*(n - 1) / 8 * threshold < epsilon:
+        return np.array([P[0], P[-1]])
 
+    if k==0 or threshold < epsilon:
+        return P
+
+    P_1, P_2 = deCasteljau_2(P)
+    a_1 = bezier_subdivision(P_1, k-1, epsilon, lines)[:-1, :]
+    a_2 = bezier_subdivision(P_2, k-1, epsilon, lines)
+    return np.vstack((a_1, a_2))
+
+	
+def deCasteljau_2(P): 
+    P = np.array(P)
+    n = P.shape[0]-1
+    dim = P.shape[1]
+    bij = np.empty((n+1,n+1, dim))
+    b_diag = np.empty((n+1, dim))
+    bij[0,:,:] = P
+    b_diag[0] = P[0]
+    for i in range (1, n+1):
+        for j in range (i, n+1):
+            bij[i, j,:] = bij[i-1, j,:]*0.5 + bij[i-1, j-1,:]*0.5
+            if (i == j):
+                b_diag[j] = bij[i,j]
+    return b_diag, bij[:,n][::-1]
+	
+	
 def backward_differences_bezier(P, m, h=None):
     '''
     Método de diferencias "hacia atrás".
@@ -129,28 +130,3 @@ def backward_differences_bezier(P, m, h=None):
     Evaluará la curva de Bézier en los puntos de la forma h*k para k=0,...,m. Si h=None entonces h=1/m.
     '''
     pass
-
-
-if __name__ == '__main__':
-    fig = plt.figure()
-    ax = Axes3D(fig)
-
-    P = np.asarray([[0.1, .8, 1], [1, .2, .5], [0, .1, .4], [.3, .9, .7]])
-    num_points = 100
-    dim = np.size(P, 1)
-    n = np.size(P, 0) - 1
-    algorithm = 'deCasteljau'
-    plt.title('De Casteljau: Prueba 3D')
-    start = time.time()
-    result = polyeval_bezier(P, num_points, algorithm)
-#    print result
-#    print np.size(result)
-    ax.plot(result[0, :], result[1, :], result[2, :])
-    P_x = P[:, 0]
-    P_y = P[:, 1]
-    P_z = P[:, 2]
-    ax.plot(P_x, P_y, P_z, 'ro')
-    ax.plot(P_x, P_y, P_z, 'g')
-    end = time.time()
-    plt.show()
-    print(end - start)
