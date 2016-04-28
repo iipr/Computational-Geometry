@@ -62,6 +62,7 @@ def horner(n, cp, t_array):
     return np.concatenate([horner_1, horner_2])
 
 def polyeval_bezier(P, num_points, algorithm):
+    P = np.asarray(P)
     # Numero de puntos de P = n+1:
     n = np.size(P, 0) - 1
     # Dimension de los puntos
@@ -73,25 +74,25 @@ def polyeval_bezier(P, num_points, algorithm):
         bezier = [np.sum(P[k][0] * comb(n, k) * t_array** k * (1 - t_array) ** (n - k) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * comb(n, k) * t_array ** k * (1 - t_array) ** (n - k) for k in range(n+1))]))
-        return bezier
+        return bezier.T
 
     elif(algorithm == 'recursive'):
         bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * bernstein_rec(n, k, t_array) for k in range(n+1))]))
-        return bezier
+        return bezier.T
 
     elif(algorithm == 'horner'):
         bezier = [horner(n, P_axis[0, :], t_array)]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [horner(n, P_axis[i, :], t_array)]))
-        return bezier
+        return bezier.T[::-1]
 
     elif(algorithm == 'deCasteljau'):
         bezier = [deCasteljau(n, 0, P_axis[0, :], t_array)]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [deCasteljau(n, 0, P_axis[i, :], t_array)]))
-        return bezier
+        return bezier.T[::-1]
 
 def bezier_subdivision_recursive(P, k, epsilon, lines):
     #Calcular max (viene en los apuntes)
@@ -135,7 +136,7 @@ if __name__ == '__main__':
     fig = plt.figure()
     ax = Axes3D(fig)
 
-    P = np.asarray([[0.1, .8, 1], [1, .2, .5], [0, .1, .4], [.3, .9, .7]])
+    P = np.asarray([[-95, 98, -74], [-46, -52, 33], [76, 3, 96], [-25, 72, -98], [4, 95, 75], [77, -27, 98], [65, 65, 19], [87, -50, 8], [-68, -11, -84], [6, 3, 16], [-38, 4, 76], [-77, -55, 72], [89, 36, 83]])
     num_points = 100
     dim = np.size(P, 1)
     n = np.size(P, 0) - 1
