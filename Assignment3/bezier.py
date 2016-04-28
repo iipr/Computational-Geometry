@@ -133,9 +133,9 @@ def backward_differences_bezier(P, m, h=None):
     points = np.zeros((m+1, n+1, d))
     
     #Calculo del triangulo inicial
-    t_array = np.linspace(0, n*h, n+1)
+    t_array = np.arange(0, (n + 1)*h, h)
 
-    points[:(n+1),0] = horner_eval_bezier(P, t_array)
+    points[:(n+1),0] = horner(P, t_array)
   
     #Diferencias hacia delante
     for i in range (1,n+1):
