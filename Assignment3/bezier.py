@@ -62,7 +62,9 @@ def polyeval_bezier(P, num_points, algorithm):
         >>> curve_2 = polyeval_bezier(Q, 50, 'direct')
 
     """
+    # Transform into a numpy.array, just in case
     P = np.array(P)
+    # Array of points in [0, 1] to evaluate the curve.
     t_array = np.linspace(0, 1, num_points)
     if algorithm == 'direct':
         return direct(P, t_array)
@@ -109,6 +111,7 @@ def comb(m, n):
         Lower value of the binomial coefficient.
 
     """
+    # First check in the dictionary, and add it if it is not there
     if(not((m, n) in BINOMIAL_DICT)):
         BINOMIAL_DICT[(m, n)] = np.math.factorial(m) /\
                                (np.math.factorial(n) * np.math.factorial(m - n))
@@ -150,6 +153,7 @@ def recursive(P, t_array):
     """
     # There are n+1 points of dimension dim on P
     n, dim = P.shape - np.array([1, 0])
+    # Compute the curve, by coordinates
     bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array)\
               for k in range(n+1))]
     for i in range(1, dim):
@@ -172,6 +176,7 @@ def bernstein_rec(n, k, t):
         Array of points in [0, 1] to evaluate.
 
     """
+    # First check in the dictionary
     if((n, k) in RECURSIVE_BERNSTEIN_DICT):
         return RECURSIVE_BERNSTEIN_DICT.get((n, k))
     elif(k == -1 or k == n + 1):
@@ -180,6 +185,7 @@ def bernstein_rec(n, k, t):
     elif(n == 0 and k == 0):
         RECURSIVE_BERNSTEIN_DICT[(n, k)] = 1
         return 1
+    # Add it if it is not in the dictionary
     else:
         RECURSIVE_BERNSTEIN_DICT[(n, k)] = t * bernstein_rec(n - 1, k - 1, t) +\
                                            (1 - t) * bernstein_rec(n - 1, k, t)
@@ -221,7 +227,7 @@ def horner(cPoints, t_array):
 
 
 def deCasteljau(P, t):
-    """Evaluation of the curve using De Casteljau's algorithm.
+    """Evaluation of the curve using the De Casteljau's algorithm.
 
     Parameters
     ----------
@@ -240,7 +246,7 @@ def deCasteljau(P, t):
     # Control polygon initialization
     matrix[:, 1:] = t[:, np.newaxis, np.newaxis] * P[1:,:] +\
               (1 - t)[:, np.newaxis, np.newaxis] * P[:n,:]
-    #Apply De Casteljau's method
+    #Apply the De Casteljau's method
     for i in range(2, n+1):
         matrix[:, i:] = t[:, np.newaxis, np.newaxis] * matrix[:, i:] +\
                   (1 - t)[:, np.newaxis, np.newaxis] * matrix[:, (i-1):n]
