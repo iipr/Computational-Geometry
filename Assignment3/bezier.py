@@ -376,30 +376,27 @@ def backward_differences_bezier(P, m, h=None):
 
     """
     if h == None:
-        h = 1 / m
-    # There are n+1 points of dimension dim on P
-    n, d = P.shape - np.array([1, 0])
-
-    backward = np.zeros((m - n + 1, n + 1, d))
+        h = 1/m
+    #First obtain polynomial's dimensions
+    n, d = np.shape(P) - np.array([1, 0])
     t_array = np.arange(0, (n + 1)*h, h)
 
     #Inicialice with Horner's method
     p_init = horner(P, t_array)
     
     #Compute the forward differences
-    forward = np.zeros((n+1, d))
-    file_n = np.zeros((n+1,d))
-    file_n[0] = p_init[n]
-    
+    forward = np.zeros((n + 1, d))
+    file_n = np.zeros((n + 1,d))
+    file_n[0] = p_init[n]  
     forward[1:] = p_init[1:] - p_init[:n]
     file_n[1] = forward[n]
     
-    for i in range(2,n+1):
-        forward[i:] = forward[i:] - forward[(i-1):n]
+    for i in range(2,n + 1):
+        forward[i:] = forward[i:] - forward[(i - 1):n]
         file_n[i] = forward[n]
 
     #Finally compute the backward recursion
-    backward = np.zeros((m-n+1, n+1, d))
+    backward = np.zeros((m - n + 1, n + 1, d))
 
     #We inverse the book's matrix to use cumsum
     backward[:] = file_n[::-1] 
