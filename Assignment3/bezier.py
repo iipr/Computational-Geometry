@@ -383,28 +383,29 @@ def backward_differences_bezier(P, m, h=None):
     backward = np.zeros((m - n + 1, n + 1, d))
     t_array = np.arange(0, (n + 1)*h, h)
 
-    # Inicialice with Horner's method
+    #Inicialice with Horner's method
     p_init = horner(P, t_array)
     
-    # Compute the forward differences
-    forward = np.zeros((n + 1, d))
-    file_n = np.zeros((n + 1,d))
+    #Compute the forward differences
+    forward = np.zeros((n+1, d))
+    file_n = np.zeros((n+1,d))
     file_n[0] = p_init[n]
     
     forward[1:] = p_init[1:] - p_init[:n]
     file_n[1] = forward[n]
     
-    for i in range(2, n  +1):
-        forward[i:] = forward[i:] - forward[(i - 1):n]
+    for i in range(2,n+1):
+        forward[i:] = forward[i:] - forward[(i-1):n]
         file_n[i] = forward[n]
 
-    # Finally compute the backward recursion 
-    backward[0, :] = file_n 
-    backward[1:, n] = file_n[n]
-  
-    for i in range(1, m-n+1):
-        for j in range(n-1, -1, -1):
-            backward[i,j] = backward[i, j + 1] + backward[i - 1, j]
+    #Finally compute the backward recursion
+    backward = np.zeros((m-n+1, n+1, d))
+
+    #We inverse the book's matrix to use cumsum
+    backward[:] = file_n[::-1] 
     
-    # Return the p0...pM points obtained
-    return np.vstack((p_init, backward[1:, 0]))
+    for i in range(1, m-n+1):
+        backward[i:] = np.cumsum(backward[i:], axis=1)
+
+    #Return the p0...pM points obtained
+    return np.vstack((p_init, backward[1:,n]))
