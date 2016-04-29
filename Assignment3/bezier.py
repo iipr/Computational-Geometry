@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-
-"""Linear Classifation module
-
-This module provides methods for obtaining Bezier curves 
-
-
-"""
 from __future__ import division
 import numpy as np
 
@@ -53,10 +45,11 @@ def deCasteljau(k, i, cp, t):
     return deCasteljau(k - 1, i, cp, t) * t + deCasteljau(k - 1, i + 1, cp, t) * (1 - t)
 
 def horner(cPoints, t_array):
+    N = t_array.shape[0]
     n, dim = cPoints.shape - np.array([1, 0])
-    #Partimos en dos partes: <1/2 y >1/2
-    t_1, t_2 = np.split(t_array, 2)
-
+    N0 = int(N / 2)
+    t_1 = t_array[:N0]
+    t_2 = t_array[N0:]
     #Calculamos los coeficientes para el método de Horner cuando t<1/2
     coeffs_1 = np.asarray([comb_2(n, i) * cPoints[n - i, :] for i in range(n + 1)])
     #Aplicamos Horner y multiplicamos por (1-t)^n
@@ -86,6 +79,7 @@ def polyeval_bezier(P, num_points, algorithm):
     Q = [[0.1, .8], [1,.2], [0,.1], [.3,.9]]
     polyeval_bezier(Q, 50, 'direct')
 	"""
+    P = np.array(P)
     n = np.size(P, 0) - 1
     dim = np.size(P, 1)
     t_array = np.linspace(0, 1, num_points)
