@@ -1,66 +1,13 @@
-from __future__ import division
+"""Linear Classifation module
+
+This module provides methods for obtaining Bezier curves 
+
+
+"""
 import numpy as np
-
-
 
 BINOMIAL_DICT = dict()
 RECURSIVE_BERNSTEIN_DICT = dict()
-
-def comb(m, n):
-    if(not((m, n) in BINOMIAL_DICT)):
-        BINOMIAL_DICT[(m, n)] = np.math.factorial(m) // (np.math.factorial(n) * np.math.factorial(m - n))
-    return BINOMIAL_DICT.get((m, n))
-
-
-def comb_2(m, n):
-    if((m, n) in BINOMIAL_DICT):
-        return BINOMIAL_DICT.get((m, n))
-    elif(m == n or n == 0):
-        BINOMIAL_DICT[(m, n)] = 1
-        return 1
-    else:
-        BINOMIAL_DICT[(m, n)] = comb_2(m - 1, n - 1) + comb_2(m - 1, n)
-        return BINOMIAL_DICT.get((m, n))
-
-def bernstein_rec(n, k, t):
-    if((n, k) in RECURSIVE_BERNSTEIN_DICT):
-        return RECURSIVE_BERNSTEIN_DICT.get((n, k))
-    elif(k == -1 or k == n + 1):
-        RECURSIVE_BERNSTEIN_DICT[(n, k)] = 0
-        return 0
-    elif(n == 0 and k == 0):
-        RECURSIVE_BERNSTEIN_DICT[(n, k)] = 1
-        return 1
-    else:
-        RECURSIVE_BERNSTEIN_DICT[(n, k)] = t * bernstein_rec(n - 1, k - 1, t) + (1 - t) * bernstein_rec(n - 1, k, t)
-        return RECURSIVE_BERNSTEIN_DICT.get((n, k))
-
-def direct(cPoints, t_array):    
-    n = np.size(cPoints, 0) - 1
-    return np.sum(np.outer(cPoints[i].T, comb_2(n, i) * t_array ** i * (1 - t_array) ** (n - i)) for i in range(n + 1)).T
-
-def deCasteljau(k, i, cp, t):
-    if(k == 0):
-        return cp[i]
-    return deCasteljau(k - 1, i, cp, t) * t + deCasteljau(k - 1, i + 1, cp, t) * (1 - t)
-
-def horner(cPoints, t_array):
-    N = t_array.shape[0]
-    n, dim = cPoints.shape - np.array([1, 0])
-    N0 = int(N / 2)
-    t_1 = t_array[:N0]
-    t_2 = t_array[N0:]
-    #Calculamos los coeficientes para el método de Horner cuando t<1/2
-    coeffs_1 = np.asarray([comb_2(n, i) * cPoints[n - i, :] for i in range(n + 1)])
-    #Aplicamos Horner y multiplicamos por (1-t)^n
-    horner_1 = [np.polyval(coeffs_1[:, j], t_1 / (1 - t_1)) * (1 - t_1)**n for j in range(dim)]
-
-    #Calculamos los coeficientes para el método de Horner cuando t>1/2
-    coeffs_2 = np.asarray([comb_2(n, i) * cPoints[i, :] for i in range(n+1)])
-    #Aplicamos Horner y multiplicamos por t^n
-    horner_2 = [np.polyval(coeffs_2[:, j], (1 - t_2) / t_2) * t_2**n for j in range(dim)]
-
-    return np.hstack((horner_1, horner_2)).T
 
 def polyeval_bezier(P, num_points, algorithm):
     """
@@ -79,31 +26,89 @@ def polyeval_bezier(P, num_points, algorithm):
     Q = [[0.1, .8], [1,.2], [0,.1], [.3,.9]]
     polyeval_bezier(Q, 50, 'direct')
 	"""
+    t = np.linspace(0, 1, num_points)
     P = np.array(P)
     n = np.size(P, 0) - 1
     dim = np.size(P, 1)
     t_array = np.linspace(0, 1, num_points)
     P_axis = np.asarray([P[:, i] for i in range(dim)])
-    if(algorithm == 'direct'):
+    if algorithm == 'direct':
         return direct(P, t_array)
-
-    elif(algorithm == 'recursive'):
+    elif algorithm == 'recursive':
         bezier = [np.sum(P[k][0] * bernstein_rec(n, k, t_array) for k in range(n+1))]
         for i in range(1, dim):
             bezier = np.concatenate((bezier, [np.sum(P[k][i] * bernstein_rec(n, k, t_array) for k in range(n+1))]))
         return bezier.T
-
-    elif(algorithm == 'horner'):
+    elif algorithm == 'horner':
         return horner(P, t_array)
+    else:
+        return deCasteljau_bezier(P, t)
 
-    elif(algorithm == 'deCasteljau'):
-        bezier = [deCasteljau(n, 0, P_axis[0, :], t_array)]
-        for i in range(1, dim):
-            bezier = np.concatenate((bezier, [deCasteljau(n, 0, P_axis[i, :], t_array)]))
-        return bezier.T[::-1]
+		
+def deCasteljau_bezier(P, t):
+
+    # Numero de puntos de P = n+1:
+    n, dim = np.shape(P) - np.array([1,0])
+    N = np.shape(t)[0]
+    
+    matrix = np.zeros((N, n+1, dim))
+    
+    #Inicializacion con el poligono de control
+    matrix[:,1:] = t[:,np.newaxis, np.newaxis]*P[1:,:] + (1-t)[:,np.newaxis, np.newaxis]*P[:n,:]
+    
+    for i in range(2,n+1):
+        matrix[:,i:] = t[:,np.newaxis, np.newaxis]*matrix[:,i:] + (1-t)[:,np.newaxis, np.newaxis]*matrix[:,(i-1):n]
+
+    return matrix[:,n]
+	
+def horner(cPoints, t_array):
+    N = t_array.shape[0]
+    n, dim = cPoints.shape - np.array([1, 0])
+    N0 = int(N / 2)
+    t_1 = t_array[:N0]
+    t_2 = t_array[N0:]
+    #Calculamos los coeficientes para el método de Horner cuando t<1/2
+    coeffs_1 = np.asarray([comb_2(n, i) * cPoints[n - i, :] for i in range(n + 1)])
+    #Aplicamos Horner y multiplicamos por (1-t)^n
+    horner_1 = [np.polyval(coeffs_1[:, j], t_1 / (1 - t_1)) * (1 - t_1)**n for j in range(dim)]
+
+    #Calculamos los coeficientes para el método de Horner cuando t>1/2
+    coeffs_2 = np.asarray([comb_2(n, i) * cPoints[i, :] for i in range(n+1)])
+    #Aplicamos Horner y multiplicamos por t^n
+    horner_2 = [np.polyval(coeffs_2[:, j], (1 - t_2) / t_2) * t_2**n for j in range(dim)]
+
+    return np.hstack((horner_1, horner_2)).T
+		
+def direct(cPoints, t_array):    
+    n = np.size(cPoints, 0) - 1
+    return np.sum(np.outer(cPoints[i].T, comb_2(n, i) * t_array ** i * (1 - t_array) ** (n - i)) for i in range(n + 1)).T
+
+def comb_2(m, n):
+    if((m, n) in BINOMIAL_DICT):
+        return BINOMIAL_DICT.get((m, n))
+    elif(m == n or n == 0):
+        BINOMIAL_DICT[(m, n)] = 1
+        return 1
+    else:
+        BINOMIAL_DICT[(m, n)] = comb_2(m - 1, n - 1) + comb_2(m - 1, n)
+        return BINOMIAL_DICT.get((m, n))
+	
+
+def bernstein_rec(n, k, t):
+    if((n, k) in RECURSIVE_BERNSTEIN_DICT):
+        return RECURSIVE_BERNSTEIN_DICT.get((n, k))
+    elif(k == -1 or k == n + 1):
+        RECURSIVE_BERNSTEIN_DICT[(n, k)] = 0
+        return 0
+    elif(n == 0 and k == 0):
+        RECURSIVE_BERNSTEIN_DICT[(n, k)] = 1
+        return 1
+    else:
+        RECURSIVE_BERNSTEIN_DICT[(n, k)] = t * bernstein_rec(n - 1, k - 1, t) + (1 - t) * bernstein_rec(n - 1, k, t)
+        return RECURSIVE_BERNSTEIN_DICT.get((n, k))
 
 
-def bezier_subdivision(P, k, epsilon, lines): 
+def bezier_subdivision(P, k, epsilon, lines=False):
     """
     This function implements subdivision's method
     Integer parameter k indicates the number of subdivision, and epsilon
@@ -123,42 +128,34 @@ def bezier_subdivision(P, k, epsilon, lines):
     result = bezier_subdivision(np.array(P), k, epsilon, True)
 
     """
-    P = np.array(P)
-    n = np.shape(P)[0]
-    #Stop threshold calculation
-    delta2_b = np.diff(P, n=2, axis=0)
-    threshold = np.max(np.linalg.norm(delta2_b, axis=1))
-    
-    if lines and n*(n - 1) / 8 * threshold < epsilon:
-        return np.array([P[0], P[-1]])
+    n, dim = P.shape - np.array([1, 0])
 
-    if k==0 or threshold < epsilon:
+    if n == 1:
         return P
 
-	#Division of the problem in two subproblems
-    P_1, P_2 = deCasteljau_2(P)
-	#We have to eliminate the last point, as it is duplicated in both arrays
-    a_1 = bezier_subdivision(P_1, k-1, epsilon, lines)[:-1, :]
-    a_2 = bezier_subdivision(P_2, k-1, epsilon, lines)
-    return np.vstack((a_1, a_2))
+    delta2_b = np.diff(P, n=2, axis=0)
+    norm_delta2 = np.max(np.linalg.norm(delta2_b, axis=1))
+
+    if lines and n*(n - 1) / 8 * norm_delta2 < epsilon:
+        return np.array([P[0], P[-1]])
+
+    if k==0 or norm_delta2 < epsilon:
+        return P
+
+    P0, P1 = deCasteljau_2(P)
+    return np.vstack((bezier_subdivision(P0, k-1, epsilon)[:-1, :], bezier_subdivision(P1, k-1, epsilon)))
 
 	
 def deCasteljau_2(P): 
-    P = np.array(P)
     n = P.shape[0]-1
     dim = P.shape[1]
     bij = np.empty((n+1,n+1, dim))
-    b_diag = np.empty((n+1, dim))
     bij[0,:,:] = P
-    b_diag[0] = P[0]
-    for i in range (1, n+1):
-        for j in range (i, n+1):
-            bij[i, j,:] = bij[i-1, j,:]*0.5 + bij[i-1, j-1,:]*0.5
-            if (i == j):
-                b_diag[j] = bij[i,j]
-    return b_diag, bij[:,n][::-1]
+    for i in xrange (1, n+1):
+        bij[i, :,:] = bij[i-1, :,:]*0.5 +  0.5*np.vstack((np.zeros((1, dim)), bij[i - 1, :n, :]))
+    return np.diagonal(bij).T, bij[:,n][::-1]
 
-	
+
 def backward_differences_bezier(P, m, h=None):
     """
     This function will evaluate Bezier's curve at points of the form h * k for k = 0, ..., m.
@@ -174,7 +171,6 @@ def backward_differences_bezier(P, m, h=None):
     result = backward_differences_bezier(P, k, epsilon, True)
     
     """
-
     if h == None:
         h = 1/m
     n = np.shape(P)[0]-1
