@@ -55,6 +55,8 @@ class Interactive_Bezier():
         self.figure.canvas.mpl_disconnect(self.cid_move)
         self.figure.canvas.mpl_disconnect(self.cid_release)
         self.figure.canvas.mpl_disconnect(self.close_event)
+        self.figButtons.canvas.mpl_disconnect(self.cid_close2)
+
 #        plt.close()
         plt.close(self.figure)
         plt.close(self.figButtons)
@@ -99,6 +101,8 @@ class Interactive_Bezier():
 
     def computeCurve(self):
         if self.curveindex == 1:
+            if self.cPoints1 == None:
+                return
             self.n1 = np.size(self.cPoints1, 0) - 1
             if self.algorithm in ['direct', 'recursive', 'horner', 'deCasteljau']:
                 num_points = 1000
@@ -108,10 +112,12 @@ class Interactive_Bezier():
                 epsilon = 0.01
                 self.curve1 = bz.bezier_subdivision(self.cPoints1, k, epsilon)
             elif self.algorithm == 'backward':
-#                h = 0.05
+                h = 0.01
                 m = 100
-                self.curve1 = bz.backward_differences_bezier(self.cPoints1, m)
+                self.curve1 = bz.backward_differences_bezier(self.cPoints1, m, h)
         else:
+            if self.cPoints1 == None:
+                return
             self.n2 = np.size(self.cPoints2, 0) - 1
             if self.algorithm in ['direct', 'recursive', 'horner', 'deCasteljau']:
                 self.curve2 = bz.polyeval_bezier(self.cPoints2, 1000, self.algorithm)
@@ -120,9 +126,9 @@ class Interactive_Bezier():
                 epsilon = 0.01
                 self.curve2 = bz.bezier_subdivision(self.cPoints2, k, epsilon)
             elif self.algorithm == 'backward':
-#                h = 0.05
+                h = 0.01
                 m = 100
-                self.curve2 = bz.backward_differences_bezier(self.cPoints2, m)
+                self.curve2 = bz.backward_differences_bezier(self.cPoints2, m, h)
 
     def swapIndex(self):
         if self.curveindex == 1:

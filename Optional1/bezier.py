@@ -379,15 +379,15 @@ def backward_differences_bezier(P, m, h=None):
         h = 1/m
     #First obtain polynomial's dimensions
     n, d = np.shape(P) - np.array([1, 0])
-    t_array = np.arange(0, (n + 1)*h, h)
-
+    if n <= 0:
+        return P
+    t_array = np.linspace(0, n*h, n+1)
     #Inicialice with Horner's method
     p_init = horner(P, t_array)
-    
     #Compute the forward differences
     forward = np.zeros((n + 1, d))
     file_n = np.zeros((n + 1,d))
-    file_n[0] = p_init[n]  
+    file_n[0] = p_init[n]
     forward[1:] = p_init[1:] - p_init[:n]
     file_n[1] = forward[n]
     
