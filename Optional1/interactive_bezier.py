@@ -135,7 +135,7 @@ class Interactive_Bezier():
                 m = 100
                 self.curve1 = bz.backward_differences_bezier(self.cPoints1, m, h)
         else:
-            if self.cPoints1 is None:
+            if self.cPoints2 is None:
                 return
             self.n2 = np.size(self.cPoints2, 0) - 1
             if self.algorithm in ['direct', 'recursive', 'horner', 'deCasteljau']:
