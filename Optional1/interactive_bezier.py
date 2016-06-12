@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RadioButtons
 import bezier as bz
+import segment_intersection as sgint
 
 
 class Interactive_Bezier():
@@ -21,6 +22,7 @@ class Interactive_Bezier():
         self.touched_circle = None
         self.circles1 = []
         self.circles2 = []
+        self.circlesInter = [] # Array of graphic circles for the intersection between the curves
         self.line1 = None
         self.line2 = None
         self.curve1 = None
@@ -29,10 +31,11 @@ class Interactive_Bezier():
         self.bezier2 = None
         self.cPoints1 = None
         self.cPoints2 = None
+        self.intersections = None # Array of circles (centers) that show the intersection between the curves
         self.curveindex = 1
-        self.index = -1 # indice del circulo tocado
-        self.n1 = -1 # numero de puntos del poligono de control de la primera curva menos 1
-        self.n2 = -1 # numero de puntos del poligono de control de la segunda curva menos 1
+        self.index = -1 # Touched circle index (it can be 1 or 2)
+        self.n1 = -1 # Number of points of the control polygon of the first curve, minus 1
+        self.n2 = -1 # Number of points of the control polygon of the second curve, minus 1
         self.cid_press = self.figure.canvas.mpl_connect('button_press_event', self.click_event)
         self.cid_move = self.figure.canvas.mpl_connect('motion_notify_event', self.motion_event)
         self.cid_release = self.figure.canvas.mpl_connect('button_release_event', self.release_event)
@@ -50,7 +53,7 @@ class Interactive_Bezier():
         self.checkAlgorithm.canvas.set_window_title('Algorithm selector')
 
     def close_event(self, event):
-        print('Bye, bye world!')
+#        print('Bye, bye world!')
         self.figure.canvas.mpl_disconnect(self.cid_press)
         self.figure.canvas.mpl_disconnect(self.cid_move)
         self.figure.canvas.mpl_disconnect(self.cid_release)
@@ -130,6 +133,75 @@ class Interactive_Bezier():
                 m = 100
                 self.curve2 = bz.backward_differences_bezier(self.cPoints2, m, h)
 
+        # And finally, compute the intersection (if any) of both curves
+        self.computeCurvesIntersection()
+
+    def computeCurvesIntersection(self):
+        # In order to compute the intersection we require both curves to exist,
+        # so we need at least 3 control points from each curve
+        if self.n1 > 1 and self.n2 > 1:
+            epsilon = 10**(-1)
+            # Call the recursive algorithm that computes the intersection of the curves
+            self.intersect(self.cPoints1, self.cPoints2, epsilon)
+            # And finally, draw the intersection (if any) of both curves
+            self.drawIntersection()
+
+    def intersect(self, bPoints, cPoints, epsilon):
+        # Compute the sides of the box that contains the first curve
+        bWest, bSouth, bEast, bNorth = self.computeBox(bPoints)
+        # And do the same for the second one
+        cWest, cSouth, cEast, cNorth = self.computeBox(cPoints)
+        # Check for BOTH horizontal and vertical intersection of the boxes
+        # Notice that if only one of them is true, then the boxes are not really touching each other
+        if self.intersectStripe(bWest, cWest, bEast, cEast) and\
+           self.intersectStripe(bSouth, cSouth, bNorth, cNorth):
+            m = bPoints.shape[0] - 1
+            delta2_b = np.diff(bPoints, n=2, axis=0)
+            bThreshold = np.max(np.linalg.norm(delta2_b, axis=1))
+            # Check threshold condition on b
+            if m * (m - 1) * bThreshold > epsilon:
+                bPrime0, bPrime1 = bz.deCasteljau_subdivision(bPoints)
+                self.intersect(bPrime0, cPoints, epsilon)
+                self.intersect(bPrime1, cPoints, epsilon)
+            else:
+                n = cPoints.shape[0] - 1
+                delta2_c = np.diff(cPoints, n=2, axis=0)
+                cThreshold = np.max(np.linalg.norm(delta2_c, axis=1))
+                # Check threshold condition on c
+                if n * (n - 1) * cThreshold > epsilon:
+                    cPrime0, cPrime1 = bz.deCasteljau_subdivision(cPoints)
+                    self.intersect(bPoints, cPrime0, epsilon)
+                    self.intersect(bPoints, cPrime1, epsilon)
+                else:
+                    self.intersectSegments(bPoints[0], bPoints[m], cPoints[0], cPoints[n])
+
+    def computeBox(self, points):
+        # Initialize the sides with the first point
+        # Note that at this point there is at least one point
+        westSide, eastSide = points[0][0], points[0][0] 
+        northSide, southSide = points[0][1], points[0][1]
+        for i in range(1, np.size(points, 0)):
+            if points[i][0] < westSide:
+                westSide = points[i][0]
+            if points[i][0] > eastSide:
+                eastSide = points[i][0]
+            if points[i][1] < southSide:
+                southSide = points[i][1]
+            if points[i][1] > northSide:
+                northSide = points[i][1]
+        return np.asarray([westSide, southSide, eastSide, northSide])
+
+    def intersectStripe(self, lowLimit1, lowLimit2, highLimit1, highLimit2):
+        return (lowLimit1 <= highLimit2) and (lowLimit2 <= highLimit1)
+
+    def intersectSegments(self, b0, bm, c0, cn):
+        point = sgint.intersectSegments(b0, bm, c0, cn)
+        if point <> None:
+            if self.intersections == None:
+                self.intersections = np.asarray([point]) # Si no tira: np.asarray([[point[0], point[1]]])
+            else:
+                self.intersections = np.append(self.intersections, [point], axis=0)
+
     def swapIndex(self):
         if self.curveindex == 1:
             self.curveindex = 2
@@ -172,6 +244,21 @@ class Interactive_Bezier():
         elif self.n2 > 2:
             self.bezier2.set_data(self.curve2[:, 0], self.curve2[:, 1])
 
+    def drawIntersection(self):
+        # If the list self.intersections is empty, don't do nothing
+        if self.intersections <> None:
+            for inter in self.intersections:
+                c = plt.Circle((inter[0], inter[1]), radius=0.10, color='red')
+                # Add the (graphic) intersection to the list circlesInter
+                self.circlesInter.append(c)
+                self.axes.add_artist(c)
+
+    def eraseIntersections(self):
+        self.intersections = None
+        for inter in self.circlesInter:
+            inter.remove()
+        self.circlesInter = []
+
     def drawControlPolygon(self):
         if len(self.circles1) > 0:
             if self.line1 == None:
@@ -205,6 +292,8 @@ class Interactive_Bezier():
         
         # If we clicked with the left button, we save the event
         self.initial_event = event
+        # Delete actual intersections, if any
+        self.eraseIntersections()
         # Check if we have clicked on one of the control points
         for c in self.axes.artists:
             if c.contains(event)[0]:

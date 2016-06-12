@@ -7,7 +7,7 @@ def degenerateCases(p1, p2, p3, p4):
     """Si en nuestra ecuacion la x o la y 
     son alguna cero, solo tenemos una incognita"""
     if (p2[0]-p1[0])==0 and (p2[1]-p1[1])==0 and (p4[0]-p3[0])==0 and (p4[1]-p3[1])==0:
-        """Tenemos cuatro puntos, si son los mismos lo devolvemos, si no no hacemos nada."""
+        """Tenemos dos puntos, si son los mismos lo devolvemos, si no no hacemos nada."""
         if p1[0]==p3[0] and p1[1]==p3[1]:
             return p1
         else:
@@ -16,8 +16,12 @@ def degenerateCases(p1, p2, p3, p4):
         """Dos segmentos verticales"""
         if p1[0]-p3[0]==0:
             """Segmentos en la misma vertical"""
-            print 'En la misma vertical'
-            return None
+            if max(p1[1], p2[1]) <= max(p3[1], p4[1]) and max(p1[1], p2[1]) >= min(p3[1], p4[1]):
+                return  [p1[0], max(p1[1], p2[1])]
+            elif min(p1[1], p2[1]) <= max(p3[1], p4[1]) and min(p1[1], p2[1]) >= min(p3[1], p4[1]):
+                return  [p1[0], min(p1[1], p2[1])]
+            else:
+                return None
         else:
             return None
         
@@ -25,13 +29,17 @@ def degenerateCases(p1, p2, p3, p4):
         """Dos segmentos horizontales"""
         if p1[1]-p3[1]==0:
             """Segmentos en la misma horizontal"""
-            print 'En la misma horizontal'
-            return None
+            if max(p1[0], p2[0]) <= max(p3[0], p4[0]) and max(p1[0], p2[0]) >= min(p3[0], p4[0]):
+                return  [max(p1[0], p2[0]), p1[1]]
+            if min(p1[0], p2[0]) <= max(p3[0], p4[0]) and min(p1[0], p2[0]) >= min(p3[0], p4[0]):
+                return  [min(p1[0], p2[0]), p1[1]]
+            else:
+                return None
         else:
             return None
 
     
-def intersection(p1, p2, p3, p4):
+def intersectSegments(p1, p2, p3, p4):
     """Recibe cuatro puntos, los dos primeros son 
     un segmento y los dos ultimos son otro,
     devuelve la interseccion de ambos o None si no hay.
@@ -52,7 +60,7 @@ def intersection(p1, p2, p3, p4):
     if a == []:
         return None
     elif not a.has_key(x) or not a.has_key(y):
-        print 'Comparten recta'
+        print 'Paralelos en direccion oblicua (unico caso no tratado)'
         return None
     elif a.get(x)<=1 and a.get(x)>=0 and a.get(y)<=1 and a.get(y)>=0: 
         """Como tomamos p1 y el vector p1-p2, el lambda de la interseccion
@@ -60,37 +68,3 @@ def intersection(p1, p2, p3, p4):
         return np.array(p1+a.get(x)*(p2-p1))
     else:
         return None
-
-if __name__ == "__main__":
-
-    import matplotlib.pyplot as plt
-    import matplotlib.lines as ln
-    import time as t
-
-    fig = plt.figure()
-
-    sub = fig.add_subplot(111)
-    p1 = np.array([1,5])
-    p2 = np.array([5,2])
-
-    p3 = np.array([5,5])
-    p4 = np.array([2,2])
-
-    line1 = ln.Line2D(np.array([p1[0], p2[0]]), np.array([p1[1], p2[1]]), color='b')
-    line2 = ln.Line2D(np.array([p3[0], p4[0]]), np.array([p3[1], p4[1]]), color='b')
-
-    sub.add_line(line1)
-    sub.add_line(line2)
-    sub.axis([0, 7, 0, 7])
-
-    t0 = t.time()
-    inter = intersection(p1, p2, p3, p4)
-    print t.time()-t0
-
-    if inter == None:
-        print 'no hay inters'
-    else:
-        sub.plot(float(inter[0]), float(inter[1]), 'ro')
-
-    sub.figure.canvas.draw()
-    plt.show()
