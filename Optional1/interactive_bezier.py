@@ -2,7 +2,7 @@
 """
 Created on Sat May 7 12:51:23 2016
 
-@author: Jagui, Iker & Kike
+@author: Jesús, Enrique & Iker 
 """
 
 
@@ -20,22 +20,32 @@ class Interactive_Bezier():
         self.axes.set_xlim(-10, 10)
         self.axes.set_ylim(-10, 10)
         self.touched_circle = None
-        self.circles1 = []
-        self.circles2 = []
-        self.circlesInter = [] # Array of graphic circles for the intersection between the curves
-        self.line1 = None
-        self.line2 = None
-        self.curve1 = None
-        self.curve2 = None
-        self.bezier1 = None
-        self.bezier2 = None
+        # Numpy arrays containing the control points
         self.cPoints1 = None
         self.cPoints2 = None
-        self.intersections = None # Array of circles (centers) that show the intersection between the curves
+        # Array of graphic circles, control points of each curve
+        self.circles1 = []
+        self.circles2 = []
+        # Array of circles (centers) that shows the intersection between the curves
+        self.intersections = None
+        # Array of graphic circles for the intersection between the curves
+        self.circlesInter = []
+        # Graphic objects containing the control polygons of each curve
+        self.line1 = None 
+        self.line2 = None
+        # Numpy arrays that contain the bezier curves
+        self.curve1 = None
+        self.curve2 = None
+        # Graphic objects containing the bezier curves represented by curve1 and curve2
+        self.bezier1 = None
+        self.bezier2 = None
+        # Index of the current selected curve (1 or 2)       
         self.curveindex = 1
-        self.index = -1 # Touched circle index (it can be 1 or 2)
-        self.n1 = -1 # Number of points of the control polygon of the first curve, minus 1
-        self.n2 = -1 # Number of points of the control polygon of the second curve, minus 1
+        # Touched circle index
+        self.index = -1
+        # Number of points of the control polygon of the curves, minus 1
+        self.n1 = -1
+        self.n2 = -1
         self.cid_press = self.figure.canvas.mpl_connect('button_press_event', self.click_event)
         self.cid_move = self.figure.canvas.mpl_connect('motion_notify_event', self.motion_event)
         self.cid_release = self.figure.canvas.mpl_connect('button_release_event', self.release_event)
@@ -137,9 +147,7 @@ class Interactive_Bezier():
         if self.n1 > 1 and self.n2 > 1:
             epsilon = 0.01
             # Call the recursive algorithm that computes the intersection of the curves
-            antes = t.time()
             self.intersect(self.cPoints1, self.cPoints2, epsilon)
-            print 'tiempo total de computo de interseccion: ', t.time() - ant
             # And finally, draw the intersection (if any) of both curves
             self.drawIntersection()
 
