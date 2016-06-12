@@ -53,10 +53,9 @@ def intersectSegments(p1, p2, p3, p4):
     
     #Ecuacion para la interseccion de dos rectas en R2
     
-    
     a = solve([Eq(p1[0] + x*(p2[0]-p1[0]),p3[0] + y*(p4[0]-p3[0])), 
                Eq(p1[1] + x*(p2[1]-p1[1]),p3[1] + y*(p4[1]-p3[1]))], [x, y])
-    
+
     if a == []:
         return None
     elif not a.has_key(x) or not a.has_key(y):
@@ -65,6 +64,7 @@ def intersectSegments(p1, p2, p3, p4):
     elif a.get(x)<=1 and a.get(x)>=0 and a.get(y)<=1 and a.get(y)>=0: 
         """Como tomamos p1 y el vector p1-p2, el lambda de la interseccion
         debe estar entre 0 y 1, es decir dentro del segmento"""
+        
         return np.array(p1+a.get(x)*(p2-p1))
     else:
         return None

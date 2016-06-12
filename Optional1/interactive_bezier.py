@@ -53,14 +53,12 @@ class Interactive_Bezier():
         self.checkAlgorithm.canvas.set_window_title('Algorithm selector')
 
     def close_event(self, event):
-#        print('Bye, bye world!')
         self.figure.canvas.mpl_disconnect(self.cid_press)
         self.figure.canvas.mpl_disconnect(self.cid_move)
         self.figure.canvas.mpl_disconnect(self.cid_release)
         self.figure.canvas.mpl_disconnect(self.close_event)
         self.figButtons.canvas.mpl_disconnect(self.cid_close2)
 
-#        plt.close()
         plt.close(self.figure)
         plt.close(self.figButtons)
     
@@ -87,17 +85,14 @@ class Interactive_Bezier():
         self.computeCurve()
         self.drawBezier()
         self.figure.canvas.draw()
-#        plt.draw()
 
     def calculateIndex(self):
         for i in range(self.n1 + 1):
-#            print self.cPoints1[i][0], self.cPoints1[i][1]
             if (self.cPoints1[i][0] == self.x0 and self.cPoints1[i][1] == self.y0): 
                 self.index = i
                 self.curveindex = 1
 
         for i in range(self.n2 + 1):
-#            print self.cPoints2[i][0], self.cPoints2[i][1]
             if (self.cPoints2[i][0] == self.x0 and self.cPoints2[i][1] == self.y0): 
                 self.index = i
                 self.curveindex = 2
@@ -140,9 +135,11 @@ class Interactive_Bezier():
         # In order to compute the intersection we require both curves to exist,
         # so we need at least 3 control points from each curve
         if self.n1 > 1 and self.n2 > 1:
-            epsilon = 10**(-1)
+            epsilon = 0.01
             # Call the recursive algorithm that computes the intersection of the curves
+            antes = t.time()
             self.intersect(self.cPoints1, self.cPoints2, epsilon)
+            print 'tiempo total de computo de interseccion: ', t.time() - ant
             # And finally, draw the intersection (if any) of both curves
             self.drawIntersection()
 
@@ -159,7 +156,7 @@ class Interactive_Bezier():
             delta2_b = np.diff(bPoints, n=2, axis=0)
             bThreshold = np.max(np.linalg.norm(delta2_b, axis=1))
             # Check threshold condition on b
-            if m * (m - 1) * bThreshold > epsilon:
+            if m * (m - 1) * bThreshold > epsilon: 
                 bPrime0, bPrime1 = bz.deCasteljau_subdivision(bPoints)
                 self.intersect(bPrime0, cPoints, epsilon)
                 self.intersect(bPrime1, cPoints, epsilon)
@@ -176,19 +173,8 @@ class Interactive_Bezier():
                     self.intersectSegments(bPoints[0], bPoints[m], cPoints[0], cPoints[n])
 
     def computeBox(self, points):
-        # Initialize the sides with the first point
-        # Note that at this point there is at least one point
-        westSide, eastSide = points[0][0], points[0][0] 
-        northSide, southSide = points[0][1], points[0][1]
-        for i in range(1, np.size(points, 0)):
-            if points[i][0] < westSide:
-                westSide = points[i][0]
-            if points[i][0] > eastSide:
-                eastSide = points[i][0]
-            if points[i][1] < southSide:
-                southSide = points[i][1]
-            if points[i][1] > northSide:
-                northSide = points[i][1]
+        westSide, southSide = np.min(points, axis=0)
+        eastSide, northSide = np.max(points, axis=0)
         return np.asarray([westSide, southSide, eastSide, northSide])
 
     def intersectStripe(self, lowLimit1, lowLimit2, highLimit1, highLimit2):
@@ -198,7 +184,7 @@ class Interactive_Bezier():
         point = sgint.intersectSegments(b0, bm, c0, cn)
         if point <> None:
             if self.intersections == None:
-                self.intersections = np.asarray([point]) # Si no tira: np.asarray([[point[0], point[1]]])
+                self.intersections = np.asarray([point])
             else:
                 self.intersections = np.append(self.intersections, [point], axis=0)
 
