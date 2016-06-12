@@ -16,7 +16,6 @@ class LSQ_classification:
         tags: list of classes to which the data points belong
               [k0, k1, ...]
         K: number of different classes'''
-        print np.shape(X), np.shape(tags), K
         #Convertimos a tipo array que nos gusta mas. Si ya es array no hace nada.
         X = np.asarray(X)
 

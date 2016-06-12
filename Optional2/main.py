@@ -6,7 +6,13 @@ import loadPoints as lp
 import LSQ_classification as lsq
 
 class Main:
-    
+    """ Crea una ventana en la que puedes introducir puntos 
+    pertenecientes a distintas clases, una vez hayas terminado
+    de introducir los puntos, pulsando enter se produce una 
+    clasificacion usando minimos cuadrados y otra usando Fisher.
+    Fisher es el de dos clases, asi que toma las clases pares en 
+    una clase y las impares en la otra. """
+
     def __init__(self):
     	self.trainer = lp.LoadPoints()
         self.points, self.classes = self.trainer.get_points()
@@ -26,6 +32,7 @@ class Main:
         plt.show()
 
     def loadFigureResult(self):
+        """Crea la figura inicial."""
         self.fig = plt.figure(facecolor='g',figsize=(100,50))
         #self.fig.set_label('Classify')
         self.plot_lsq = self.fig.add_subplot(121, title='Least squares')
@@ -41,6 +48,7 @@ class Main:
 
 
     def compute_fisher(self):
+        """Entrena la matriz de Fisher con los puntos introducidos"""
         #First we adapt points to Fisher input      
    
         self.X_0 = self.points[self.classes < self.numClasses/2, :]
@@ -52,10 +60,12 @@ class Main:
 
 
     def computeLSQ(self):
+        """Entrena la matriz de LSQ con los puntos introducidos"""
         self.lsq_classifier = lsq.LSQ_classification()
         self.lsq_classifier.compute_W(self.points.transpose(), self.classes, self.numClasses)
 
     def drawPoints(self):
+        """Pinta los puntos en la ventana final"""
         for Ck in self.labels:
             self.plot_lsq.plot(self.points[self.classes == Ck,0], self.points[self.classes == Ck,1], 'o')
 
