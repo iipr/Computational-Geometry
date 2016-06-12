@@ -89,7 +89,10 @@ def intersectSegments(p1, p2, p3, p4):
     v = p4 - p3
 
     # Extra check that assures there won't be any problems with 0 division
+    # This is the case when we have parallel not degenerates segments
     if (v[0] * u[1] - u[0] * v[1]) == 0 or u[0] == 0:
+        # We should check if they overlap, but it's not 
+        # necessary for Bezier curves intersection
         return None
 
     # Solution of the intersection of two lines in R2
