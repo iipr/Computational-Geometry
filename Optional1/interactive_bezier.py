@@ -27,8 +27,7 @@ class Interactive_Bezier():
         # Array of graphic circles, control points of each curve
         self.circles1 = []
         self.circles2 = []
-        # Array of circles (centers) that shows the intersection between the
-        # curves
+        # Array of circles (centers) that shows the intersection between the curves
         self.intersections = None
         # Array of graphic circles for the intersection between the curves
         self.circlesInter = []
@@ -38,8 +37,7 @@ class Interactive_Bezier():
         # Numpy arrays that contain the bezier curves
         self.curve1 = None
         self.curve2 = None
-        # Graphic objects containing the bezier curves represented by curve1
-        # and curve2
+        # Graphic objects containing the bezier curves represented by curve1 and curve2
         self.bezier1 = None
         self.bezier2 = None
         # Index of the current selected curve (1 or 2)
@@ -60,15 +58,13 @@ class Interactive_Bezier():
         self.figure.canvas.set_window_title(
             'Interactive Bezier curves and intersection')
 
-        # Independent window for selecting the algorithm that computes the
-        # curves
+        # Independent window for selecting the algorithm that computes the curves
         self.algorithm = 'direct'
         self.figButtons = plt.figure(figsize=(2.2, 2.2))
         self.figButtons.add_subplot(111)
-        self.checkAlgorithm = RadioButtons(
-            self.figButtons.axes[0], (
-                'Direct', 'Recursive', 'Horner', 'DeCasteljau',
-                'Subdivision', 'Backward'), activecolor='g')
+        self.checkAlgorithm = RadioButtons(self.figButtons.axes[0], (
+            'Direct', 'Recursive', 'Horner', 'DeCasteljau',
+            'Subdivision', 'Backward'), activecolor='g')
         self.checkAlgorithm.on_clicked(self.radio_click)
         self.cid_close2 = self.figButtons.canvas.mpl_connect(
             'close_event', self.close_event)
@@ -109,6 +105,7 @@ class Interactive_Bezier():
         self.figure.canvas.draw()
 
     def calculateIndex(self):
+        # Compute the index of the clicked circle
         for i in range(self.n1 + 1):
             if (self.cPoints1[i][0] == self.x0 and self.cPoints1[i][1] == self.y0):
                 self.index = i
@@ -120,16 +117,15 @@ class Interactive_Bezier():
                 self.curveindex = 2
 
     def computeCurve(self):
+        # Compute the new curve, depending on the index and method
         if self.curveindex == 1:
             if self.cPoints1 is None:
                 return
             self.n1 = np.size(self.cPoints1, 0) - 1
             if self.algorithm in ['direct', 'recursive', 'horner', 'deCasteljau']:
                 num_points = 1000
-                self.curve1 = bz.polyeval_bezier(
-                    self.cPoints1,
-                    num_points,
-                    self.algorithm)
+                self.curve1 = bz.polyeval_bezier(self.cPoints1,
+                    num_points, self.algorithm)
             elif self.algorithm == 'subdivision':
                 k = 5
                 epsilon = 0.01
@@ -137,17 +133,15 @@ class Interactive_Bezier():
             elif self.algorithm == 'backward':
                 h = 0.01
                 m = 100
-                self.curve1 = bz.backward_differences_bezier(
-                    self.cPoints1, m, h)
+                self.curve1 = bz.backward_differences_bezier(self.cPoints1, m, h)
         else:
             if self.cPoints1 is None:
                 return
             self.n2 = np.size(self.cPoints2, 0) - 1
             if self.algorithm in ['direct', 'recursive', 'horner', 'deCasteljau']:
-                self.curve2 = bz.polyeval_bezier(
-                    self.cPoints2,
-                    1000,
-                    self.algorithm)
+                num_points = 1000
+                self.curve2 = bz.polyeval_bezier(self.cPoints2,
+                    num_points, self.algorithm)
             elif self.algorithm == 'subdivision':
                 k = 5
                 epsilon = 0.01
@@ -155,8 +149,7 @@ class Interactive_Bezier():
             elif self.algorithm == 'backward':
                 h = 0.01
                 m = 100
-                self.curve2 = bz.backward_differences_bezier(
-                    self.cPoints2, m, h)
+                self.curve2 = bz.backward_differences_bezier(self.cPoints2, m, h)
 
         # And finally, compute the intersection (if any) of both curves
         self.computeCurvesIntersection()
@@ -166,8 +159,8 @@ class Interactive_Bezier():
         # so we need at least 3 control points from each curve
         if self.n1 > 1 and self.n2 > 1:
             epsilon = 0.01
-            # Call the recursive algorithm that computes the intersection of
-            # the curves
+            # Call the recursive algorithm that computes the
+            # intersection of the curves
             self.intersect(self.cPoints1, self.cPoints2, epsilon)
             # And finally, draw the intersection (if any) of both curves
             self.drawIntersection()
@@ -200,30 +193,28 @@ class Interactive_Bezier():
                     self.intersect(bPoints, cPrime0, epsilon)
                     self.intersect(bPoints, cPrime1, epsilon)
                 else:
-                    self.intersectSegments(
-                        bPoints[0],
-                        bPoints[m],
-                        cPoints[0],
-                        cPoints[n])
+                    self.intersectSegments(bPoints[0], bPoints[m],
+                                           cPoints[0], cPoints[n])
 
     def computeBox(self, points):
+        # Compute the bounding box that contains the control polygon of a curve
         westSide, southSide = np.min(points, axis=0)
         eastSide, northSide = np.max(points, axis=0)
         return np.asarray([westSide, southSide, eastSide, northSide])
 
     def intersectStripe(self, lowLimit1, lowLimit2, highLimit1, highLimit2):
+        # Check whether two (horizontal or vertical) stripes intesect in R**2
         return (lowLimit1 <= highLimit2) and (lowLimit2 <= highLimit1)
 
     def intersectSegments(self, b0, bm, c0, cn):
+        # Call the segment_intersection module
         point = sgint.intersectSegments(b0, bm, c0, cn)
+        # Add the new point to the array of intersection points
         if point is not None:
             if self.intersections is None:
                 self.intersections = np.asarray([point])
             else:
-                self.intersections = np.append(
-                    self.intersections,
-                    [point],
-                    axis=0)
+                self.intersections = np.append( self.intersections, [point], axis=0)
 
     def swapIndex(self):
         if self.curveindex == 1:
@@ -232,12 +223,10 @@ class Interactive_Bezier():
             self.curveindex = 1
 
     def computeControlPolygon(self, event):
+        # Compute the control polygon adding the new point, depending on the index
         if self.curveindex == 1:
             c = plt.Circle(
-                (event.xdata,
-                 event.ydata),
-                radius=0.2,
-                color='lightblue')
+                (event.xdata, event.ydata), radius=0.2, color='lightblue')
             if self.cPoints1 is None:
                 self.cPoints1 = np.asarray([[event.xdata, event.ydata]])
             else:
@@ -249,10 +238,7 @@ class Interactive_Bezier():
             self.circles1.append(c)
         else:
             c = plt.Circle(
-                (event.xdata,
-                 event.ydata),
-                radius=0.2,
-                color='lightgreen')
+                (event.xdata, event.ydata), radius=0.2, color='lightgreen')
             if self.cPoints2 is None:
                 self.cPoints2 = np.asarray([[event.xdata, event.ydata]])
             else:
@@ -289,12 +275,16 @@ class Interactive_Bezier():
                 self.axes.add_artist(c)
 
     def eraseIntersections(self):
+        # Delete the intersection of the curves from the canvas
+        # This method is applied when adding or moving a control point
         self.intersections = None
         for inter in self.circlesInter:
             inter.remove()
         self.circlesInter = []
 
     def drawControlPolygon(self):
+        # Get the circle centers from circles1 and circles2
+        # Then, draw the line passing by those points
         if len(self.circles1) > 0:
             if self.line1 is None:
                 self.line1 = plt.Line2D(
@@ -318,15 +308,15 @@ class Interactive_Bezier():
         if event.inaxes != self.axes:
             return
 
-        # If we click on the right button, we change from one curve to the other
-        # in order to add more control points (modify control points is
-        # independent of this)
+        # If we click on the right button, we change from one
+        # curve to the other in order to add more control points
+        # (modifying control points is independent of this)
         if event.button == 3:
             self.swapIndex()
             return
 
-        # For convenience, we allow the user to close the program by clicking
-        # with the scroll button
+        # For convenience, we allow the user to close the program
+        # by clicking with the scroll button
         elif event.button == 2:
             self.close_event(event)
             return
@@ -340,8 +330,8 @@ class Interactive_Bezier():
             if c.contains(event)[0]:
                 self.touched_circle = c
                 self.x0, self.y0 = c.center
-                # Compute the index of the touched circle in the corresponding
-                # cPoints array
+                # Compute the index of the touched circle
+                # in the corresponding cPoints array
                 self.calculateIndex()
                 return
 
@@ -359,6 +349,9 @@ class Interactive_Bezier():
         self.figure.canvas.draw()
 
     def motion_event(self, event):
+        # Update (x, y) coordinates of the moving circle, following
+        # the vector giveng by the mouse direction
+        # At the same time, update the corresponding control polygon
         if self.touched_circle is None:
             return
         if event.inaxes == self.axes:
@@ -375,6 +368,10 @@ class Interactive_Bezier():
             self.figure.canvas.draw()
 
     def release_event(self, event):
+        # When releasing the click, update the moving dot on the
+        # control points array. Also, recompute the curve and repaint it
+        # Note that we don't require to update the control polygon line
+        # because it was dinamically done in motion_event metod
         if self.touched_circle is None:
             return
         if self.curveindex == 1:
