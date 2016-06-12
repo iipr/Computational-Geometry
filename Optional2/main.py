@@ -56,8 +56,7 @@ class Main:
         self.configureAxis(-20, 20, -20, 20)
 
     def configureAxis(self, a, b, c, d):
-        """Configure the axis of the subplots [a, b]x[c,d]"""
-        # En un futuro la clase almacenara tb estos limites
+        """Configure the axis of the subplots [a, b] x [c,d]"""
         self.plot_lsq.axis([a, b, c, d])
         self.plot_fisher.axis([a, b, c, d])
 
@@ -107,8 +106,8 @@ class Main:
         x, y = XX.flatten(), YY.flatten()
         pts = np.vstack((x, y))
 
-        # Contour requieres a matriz, not an flatten array,
-        # that's why we use reshape.
+        # Contour requires a matrix, not an flatten array,
+        # that is why we use reshape.
 
         # We classify the 1.000.000 points using lsq method, and 
         # store their class in the ZZ_lsq variable.
