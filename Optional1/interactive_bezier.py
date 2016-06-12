@@ -234,7 +234,7 @@ class Interactive_Bezier():
                     self.cPoints1, [[event.xdata, event.ydata]], axis=0)
             # Now we can compute the curve given cPoints1
             self.computeCurve()
-            # Add the (graphic) circle to the list circles2
+            # Add the (graphic) circle to the list circles1
             self.circles1.append(c)
         else:
             c = plt.Circle(
@@ -266,7 +266,7 @@ class Interactive_Bezier():
             self.bezier2.set_data(self.curve2[:, 0], self.curve2[:, 1])
 
     def drawIntersection(self):
-        # If the list self.intersections is empty, don't do nothing
+        # If the list self.intersections is empty, do nothing
         if self.intersections is not None:
             for inter in self.intersections:
                 c = plt.Circle((inter[0], inter[1]), radius=0.10, color='red')
