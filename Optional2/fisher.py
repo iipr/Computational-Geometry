@@ -3,6 +3,7 @@ import numpy as np
 
 
 class Fisher:
+
     """Fisher's lineal discriminant algorithm to classify points.
 
     First, the matrix Sw, the weight vector w and the threshold c are computed,
@@ -34,12 +35,10 @@ class Fisher:
 
     """
 
-
     def __init__(self):
         """Instantiate w and c."""
         self.w = None
         self.c = None
-
 
     def compute_threshold(self, X0, X1, vmu0, vmu1):
         """Return threshold c for Fisher's lineal discriminant.
@@ -110,7 +109,6 @@ class Fisher:
             sigma0**2 - sigma1**2)
         return c
 
-
     def compute_Sw(self, X0, X1):
         """Return matrix Sw for Fisher's lineal discriminant.
 
@@ -153,7 +151,6 @@ class Fisher:
         S0 = np.cov(X0, y=None, rowvar=0, ddof=N0 - 1)
         S1 = np.cov(X1, y=None, rowvar=0, ddof=N1 - 1)
         return (S0 + S1)
-
 
     def train_fisher(self, X0, X1):
         """Compute and update vector w and value c for
@@ -204,7 +201,6 @@ class Fisher:
 
         # Compute threshold c with an auxiliar function:
         self.c = self.compute_threshold(X0, X1, mu0, mu1).astype(float)
-
 
     def classify_fisher(self, X):
         """Classify the points given by X using matrix w
