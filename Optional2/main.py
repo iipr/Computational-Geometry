@@ -6,13 +6,13 @@ import loadPoints as lp
 import LSQ_classification as lsq
 
 class Main:
-	"""Creates a window in which you can enter points
-	belonging to different classes. Once you're done, 
-	pressing 'enter' causes a classification using least
-	squares and another using Fisher.
-    Fisher splits in two classes, so the points of the first half of
-    the classes go to the first class and the points of the second half 
-	of the classes go to the other class."""
+    """Creates a window in which you can enter points
+    belonging to different classes. Once you're done, 
+    pressing 'enter' causes a classification using least
+    squares and another using Fisher.
+    Fisher splits in two classes, so the points of the first half of
+    the classes go to the first class and the points of the second half 
+    of the classes go to the other class."""
 
 
     def __init__(self):
